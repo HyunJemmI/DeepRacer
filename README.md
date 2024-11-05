@@ -17,4 +17,10 @@ ROOT_DIR=`pwd`
 export PATH=$ROOT_DIR/scripts:$PATH
 ## sourcing 함으로써 scripts 폴더 내부 파일을 자동으로 실행하게끔 해준다.-->
 
-Simple change for test commit
+처음 할일 :
+
+1. deepracer에서 ngrok을 켠다.(ngrok tcp 22)
+1. scripts/ngrok-env에서 포트 번호 업데이트 (만약 ADDR도 달라졌으면 업데이트)
+1. 여기서 terminal에 . ./activate # (. = source)
+1. 배포를 하려면 deploy
+1. ssh로 carina에 접속해야한다면 carina-ssh 치면된다(그럴일이 없으면 좋겠다

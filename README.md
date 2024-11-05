@@ -19,6 +19,8 @@ export PATH=$ROOT_DIR/scripts:$PATH
 
 처음 할일 :
 
+1. scripts 폴더에 ssh-key.pem 파일 추가하기 (이거 깃에 트랙하면 혼남)
+1. chmod 400 ssh-key.pem
 1. deepracer에서 ngrok을 켠다.(ngrok tcp 22)
 1. scripts/ngrok-env에서 포트 번호 업데이트 (만약 ADDR도 달라졌으면 업데이트)
 1. 여기서 terminal에 . ./activate # (. = source)

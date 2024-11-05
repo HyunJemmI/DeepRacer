@@ -1,11 +1,26 @@
 #!/bin/bash
 
 cd `dirname $0`
-echo This is deployment script
-NGROK_PORT=10453
-NGROK_ADDR="0.tcp.jp.ngrok.io"
-echo "SSH Command: cd `dirname $0` && ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem"
-ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem "
+
+carina-ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem '
     cd ~/carina
     git pull
-"
+
+    export PARA_SDK=$PWD/work
+    export PARA_CORE=$PARA_SDK
+    export PARA_CONF=$PARA_SDK/etc
+    export PARA_APPL=$PARA_SDK/opt
+    export PARA_DATA=$PARA_SDK/var
+    export LD_LIBRARY_PATH=$PARA_SDK/lib
+
+    cd project
+    cmake -B build -D CMAKE_INSTALL_PREFIX=$PARA_SDK
+    cmake --build build -j $(nproc)
+    cmake --install build
+
+    cd $PARA_SDK/bin
+
+    # kill EM process if it is already running
+    pkill -f EM
+    ./EM
+'

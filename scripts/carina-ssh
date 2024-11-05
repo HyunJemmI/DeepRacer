@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Run "ngrok tcp 22" on deepracer machine ㅇㅋ?
+
+NGROK_PORT=10453
+NGROK_ADDR="0.tcp.jp.ngrok.io"
+ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem $@

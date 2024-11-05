@@ -20,7 +20,7 @@ export PATH=$ROOT_DIR/scripts:$PATH
 처음 할일 :
 1. git config --global user.name [user_name]
 1. git config --global user.email [user_mail] -- local 에서만 제발
-gg
+
 1. scripts 폴더에 ssh-key.pem 파일 추가하기 (이거 깃에 트랙하면 혼남)
 1. chmod 400 ssh-key.pem
 1. deepracer에서 ngrok을 켠다.(ngrok tcp 22)

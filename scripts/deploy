@@ -1,3 +1,8 @@
 #!/bin/bash
 
+cd `dirname $0`
 echo This is deployment script
+NGROK_PORT=14194
+NGROK_ADDR="0.tcp.jp.ngrok.io"
+echo "SSH Command: cd `dirname $0` && ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem"
+ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem wall "Hello from Deepracer!"

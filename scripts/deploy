@@ -12,7 +12,7 @@ ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-ke
     export PARA_APPL=$PARA_SDK/opt
     export PARA_DATA=$PARA_SDK/var
     export LD_LIBRARY_PATH=$PARA_SDK/lib
-
+    
     cd project
     cmake -B build -D CMAKE_INSTALL_PREFIX=$PARA_SDK
     cmake --build build -j $(nproc)

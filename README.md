@@ -27,4 +27,4 @@ export PATH=$ROOT_DIR/scripts:$PATH
 1. scripts/ngrok-env에서 포트 번호 업데이트 (만약 ADDR도 달라졌으면 업데이트)
 1. 여기서 terminal에 . ./activate # (. = source)
 1. 배포를 하려면 deploy
-1. ssh로 carina에 접속해야한다면 carina-ssh 치면된다(그럴일이 없으면 좋겠다)
+1. ssh로 carina에 접속해야한다면 carina-ssh 치면된다(그럴일이 없으면 좋겠다 -- 서울 -> 버지니아 -> 일본 -> 한국)

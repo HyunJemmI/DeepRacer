@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$0" == "$BASH_SOURCE" ]; then
+    echo "이 스크립트는 실행이 아닌 소스로 사용되어야 합니다."
+    echo "사용법: source $0"
+    exit 1
+fi
+
+export PS1="(activated) \[\e[1;32m\]\u\[\e[m\]@\[\e[1;34m\]\h\[\e[m\]:\[\e[1;36m\]\w\[\e[m\]\$ "
+
+cd `dirname $BASH_SOURCE`
+ROOT_DIR=`pwd`
+
+export PATH=$ROOT_DIR/scripts:$PATH

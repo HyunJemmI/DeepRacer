@@ -21,15 +21,15 @@ export PATH=$ROOT_DIR/scripts:$PATH
 - 팀명 : 전농동CAR리나
 - 팀원 : 신현지, 표기환, 송규현, 이현제, 이규호
 
-## 처음 할일 [개인 노트북에서 작업할 때]
+## 처음 할일 [개인 노트북(local)에서 작업할 때]
 1. git clone [repo url]
 1. git config --global user.name [user_name]
-1. git config --global user.email [user_mail] -- local 에서만 제발
+1. git config --global user.email [user_mail]
+
 - 체크 :
 1. git remote get-url origin //잘 확인 됐는 지 확인
 1. git config --global user.name // 이름 확인
 1. git config --global user.email // 이메일 확인
-1. git
 
 ## 다음 할일 :
 1. scripts 폴더에 ssh-key.pem 파일 추가하기 (이거 깃에 트랙하면 혼남)
@@ -46,13 +46,17 @@ export PATH=$ROOT_DIR/scripts:$PATH
 1. git status //현재 git branch 확인 (아래 단계마다 확인 가능)
 1. git add . //현재 폴더 밑의 모든 변경 사항 추가
 1. git commit -m "[commit name]" //[이런 사항으로 변경]이란 이름으로 커밋한다.
-1. git push origin [branch name]
+1. git push origin [branch name] (--set-upstream origin [branch name])
 - Pull Requests 올리기
 - LGTM(확인) 받으면 master branch에 merge가 됨
 
-git merge origin master //다른 branch에 있을 때, master의 변경을 가져오기
-git rebase master //다른 branch에 있을 때, master의 변경을 가져오기
-git rebase --abort //rebase하려고 했는데 충돌이 날 때, 되돌리기
+#### 충돌난 경우
+- git graph 확인
+1. git reset --hard HEAD~[뒤로 갈 숫자]
+1. git pull
+- (i) git rebase master //다른 branch에 있을 때, master의 변경을 가져오기
+- (i) git rebase --abort //rebase하려고 했는데 충돌이 날 때, 되돌리기
+- vscode에서 충돌난 부분 잘 확인해서 수정
 
 ---
 ### [커밋 규칙]

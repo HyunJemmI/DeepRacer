@@ -18,6 +18,8 @@ export PATH=$ROOT_DIR/scripts:$PATH
 ## sourcing 함으로써 scripts 폴더 내부 파일을 자동으로 실행하게끔 해준다.-->
 
 처음 할일 :
+1. git config --global user.name [user_name]
+1. git config --global user.email [user_mail]
 
 1. scripts 폴더에 ssh-key.pem 파일 추가하기 (이거 깃에 트랙하면 혼남)
 1. chmod 400 ssh-key.pem

@@ -1,38 +1,32 @@
 {
-    "generation-by" : "PARA, PopcornSAR",
-    "autosar-version" : "R20-11",
-    "manifest-type" : "communication-management-manifest",
-    "service-protocol" : "someip",
-    "connector" : "lo",
-    "unicast-address" : "172.31.41.14",
-    "tcp-port" : "21012",
-    "udp-port" : "21012",
-    "skeletons" : [
-    ],
-    "proxies" : [
+    "generation-by": "PARA, PopcornSAR",
+    "autosar-version": "R20-11",
+    "manifest-type": "communication-management-manifest",
+    "service-protocol": "someip",
+    "connector": "lo",
+    "unicast-address": "192.168.1.54",
+    "tcp-port": "21012",
+    "udp-port": "21012",
+    "skeletons": [],
+    "proxies": [
         {
-            "service-id" : "81",
-            "instance-id" : "1",
-            "major-version" : "1",
-            "minor-version" : "ANY",
-            "client-id" : "1",
-            "sd-client-timing" : {
-                "initial-delay-min" : "0.1",
-                "initial-delay-max" : "0.2",
-                "repetition-base" : "0.1",
-                "repetition-max" : "3",
-                "ttl" : "16777215"
+            "service-id": "81",
+            "instance-id": "1",
+            "major-version": "1",
+            "minor-version": "ANY",
+            "client-id": "1",
+            "sd-client-timing": {
+                "initial-delay-min": "0.1",
+                "initial-delay-max": "0.2",
+                "repetition-base": "0.1",
+                "repetition-max": "3",
+                "ttl": "16777215"
             },
-            "eventgroups" : [
-            ],
-            "e2e-event-protection-props" : [
-            ],
-            "e2e-method-protection-props" : [
-            ]
+            "eventgroups": [],
+            "e2e-event-protection-props": [],
+            "e2e-method-protection-props": []
         }
     ],
-    "secure-com-props-for-tcp" : [
-    ],
-    "secure-com-props-for-udp" : [
-    ]
+    "secure-com-props-for-tcp": [],
+    "secure-com-props-for-udp": []
 }

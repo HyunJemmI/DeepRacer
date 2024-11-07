@@ -105,6 +105,8 @@ void Sensor::TaskGenerateCEventValue()
     cap2.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
     cap2.set(cv::CAP_PROP_FRAME_WIDTH, 160);
     cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+    m_logger.LogInfo() << "Setting CODEC Successfully";
     
     cv::Mat frame1;
     cv::Mat frame2;
@@ -113,48 +115,48 @@ void Sensor::TaskGenerateCEventValue()
     std::vector<uint8_t> buffer1;
     std::vector<uint8_t> buffer2;
 
-    // cap1 >> frame1;
-    // cap2 >> frame2;
+    cap1 >> frame1;
+    cap2 >> frame2;
 
-    // int rows1 = frame1.rows;
-    // int cols1 = frame1.cols;
-    // int arraySize1 = rows1*cols1;
-    // m_logger.LogInfo() << "Frame1 rows size :  = " << rows1;
-    // m_logger.LogInfo() << "Frame1 cols size :  = " << cols1;
-    // m_logger.LogInfo() << "Frame1 array size :  = " << arraySize1;
+    int rows1 = frame1.rows;
+    int cols1 = frame1.cols;
+    int arraySize1 = rows1*cols1;
+    m_logger.LogInfo() << "Frame1 rows size :  = " << rows1;
+    m_logger.LogInfo() << "Frame1 cols size :  = " << cols1;
+    m_logger.LogInfo() << "Frame1 array size :  = " << arraySize1;
 
-    // int rows2 = frame2.rows;
-    // int cols2 = frame2.cols;
-    // int arraySize2 = rows2*cols2;
-    // m_logger.LogInfo() << "Frame2 rows size :  = " << rows2;
-    // m_logger.LogInfo() << "Frame2 cols size :  = " << cols2;
-    // m_logger.LogInfo() << "Frame2 array size :  = " << arraySize2;
+    int rows2 = frame2.rows;
+    int cols2 = frame2.cols;
+    int arraySize2 = rows2*cols2;
+    m_logger.LogInfo() << "Frame2 rows size :  = " << rows2;
+    m_logger.LogInfo() << "Frame2 cols size :  = " << cols2;
+    m_logger.LogInfo() << "Frame2 array size :  = " << arraySize2;
 
-    // if (!frame1.empty()){
-    //     //GrayScale
-    //     cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
+    if (!frame1.empty()){
+        //GrayScale
+        cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
         
-    //     m_logger.LogInfo() << "Camera frames processed";
-    //     m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
-    //     m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
+        m_logger.LogInfo() << "Camera frames processed";
+        m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
+        m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
 
-    //     // 이미지 확인용
-    //     // cv::imshow("frame1_grayscaled", frame1_grayscaled);
-	//     // cv::waitKey(0);
-    // }
+        이미지 확인용
+        cv::imshow("frame1_grayscaled", frame1_grayscaled);
+	    cv::waitKey(0);
+    }
 
-    // if (!frame2.empty()){
-    //     //GrayScale
-    //     cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
+    if (!frame2.empty()){
+        //GrayScale
+        cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
         
-    //     m_logger.LogInfo() << "Camera frames processed";
-    //     m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
-    //     m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
+        m_logger.LogInfo() << "Camera frames processed";
+        m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
+        m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
 
-    //     // 이미지 확인용
-    //     // cv::imshow("frame2_grayscaled", frame2_grayscaled);
-	//     // cv::waitKey(0);
-    // }
+        이미지 확인용
+        cv::imshow("frame2_grayscaled", frame2_grayscaled);
+	    cv::waitKey(0);
+    }
 
     // //Mat2Vec
     // imencode(".jpeg", frame1, buffer1);
@@ -182,10 +184,10 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Bitmap Flatten";
 
-        cv::imshow("frame2_grayscaled", frame2_grayscaled);
-        if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
-			m_running = false;
-	    }
+        // cv::imshow("frame2_grayscaled", frame2_grayscaled);
+        // if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
+		// 	m_running = false;
+	    // }
 
         deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.

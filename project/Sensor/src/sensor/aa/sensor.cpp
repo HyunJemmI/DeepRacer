@@ -70,20 +70,20 @@ void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
 
-    // cv::VideoCapture cap1(0);
-    // cv::VideoCapture cap2(2);
+    cv::VideoCapture cap1(0);
+    cv::VideoCapture cap2(2);
 
-    // if (!cap1.isOpened()) {
-    //     m_logger.LogVerbose() << "Cant Open Camera1";
-    // }else{
-    //     m_logger.LogInfo() << "Open Camera1 Successfully";
-    // }
+    if (!cap1.isOpened()) {
+        m_logger.LogVerbose() << "Cant Open Camera1";
+    }else{
+        m_logger.LogInfo() << "Open Camera1 Successfully";
+    }
 
-    // if (!cap2.isOpened()) {
-    //     m_logger.LogVerbose() << "Cant Open Camera2";
-    // }else{
-    //     m_logger.LogInfo() << "Open Camera2 Successfully";
-    // }
+    if (!cap2.isOpened()) {
+        m_logger.LogVerbose() << "Cant Open Camera2";
+    }else{
+        m_logger.LogInfo() << "Open Camera2 Successfully";
+    }
     
     m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
     m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });

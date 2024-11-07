@@ -146,10 +146,6 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "Camera frames processed";
         m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
         m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
-
-        // 이미지 확인
-        // cv::imshow("frame1_grayscaled", frame1_grayscaled);
-	    // cv::waitKey(0);
     }
 
     if (!frame2.empty()){
@@ -159,15 +155,7 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "Camera frames processed";
         m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
         m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
-
-        // 이미지 확인
-        // cv::imshow("frame2_grayscaled", frame2_grayscaled);
-	    // cv::waitKey(0);
     }
-
-    // //Mat2Vec
-    // imencode(".jpeg", frame1, buffer1);
-    // imencode(".jpeg", frame2, buffer2);
 
     while (m_running)
     {
@@ -191,6 +179,7 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Bitmap Flatten";
 
+        cv::imshow("frame1_grayscaled", frame1_grayscaled);
         cv::imshow("frame2_grayscaled", frame2_grayscaled);
         if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
 			m_running = false;

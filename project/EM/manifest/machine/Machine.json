@@ -1,22 +1,21 @@
 {
-    "generation-by" : "PARA, PopcornSAR",
-    "autosar-version" : "R20-11",
-    "manifest-type" : "machine-manifest",
-    "machine-name" : "Machine",
-    "trusted-platform-executable-launch-behavior" : "no-trusted-platform-support",
-    "default-application-timeout" : "undefined",
-    "environment-variables" : [
-    ],
-    "endpoints" : [
+    "generation-by": "PARA, PopcornSAR",
+    "autosar-version": "R20-11",
+    "manifest-type": "machine-manifest",
+    "machine-name": "Machine",
+    "trusted-platform-executable-launch-behavior": "no-trusted-platform-support",
+    "default-application-timeout": "undefined",
+    "environment-variables": [],
+    "endpoints": [
         {
-            "connector" : "wlo1",
-            "ip-address" : "192.168.20.27"
+            "connector": "wlo1",
+            "ip-address": "192.168.1.54"
         }
     ],
-    "sd-endpoints" : [
+    "sd-endpoints": [
         {
-            "ip-address" : "224.0.0.1",
-            "port" : 30490
+            "ip-address": "224.0.0.1",
+            "port": 30490
         }
     ]
 }

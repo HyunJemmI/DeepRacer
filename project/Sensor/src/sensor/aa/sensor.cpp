@@ -82,7 +82,7 @@ void Sensor::Run()
     }
 
     if (!cap2.isOpened()) {
-        m_logger.LogVerbose() << "Cant Open Camera2"
+        m_logger.LogVerbose() << "Cant Open Camera2";
     }else{
         m_logger.LogInfo() << "Open Camera2 Successfully";
     }

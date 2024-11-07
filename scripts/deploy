@@ -3,6 +3,9 @@
 cd `dirname $0`
 source ./ngrok-env
 ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-key.pem '
+    pkill -f "EM$"
+    pkill -f "^iox-roudi"
+
     cd ~/carina
     git pull
 
@@ -12,7 +15,7 @@ ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-ke
     export PARA_APPL=$PARA_SDK/opt
     export PARA_DATA=$PARA_SDK/var
     export LD_LIBRARY_PATH=$PARA_SDK/lib
-    git
+
     cd project
     cmake -B build -D CMAKE_INSTALL_PREFIX=$PARA_SDK
     cmake --build build -j $(nproc)
@@ -20,7 +23,19 @@ ssh deepracer@$NGROK_ADDR -o StrictHostKeychecking=no -p $NGROK_PORT -i ./ssh-ke
 
     cd $PARA_SDK/bin
 
-    # kill EM process if it is already running
-    pkill -f EM
+    PID=$(pgrep -o "EM$")
+    while kill -0 "$PID" 2> /dev/null; do
+        echo 기존 EM 종료 대기 중...
+        sleep 1
+    done
+
+    PID=$(pgrep -o "^iox-roudi")
+    while kill -0 "$PID" 2> /dev/null; do
+        echo 기존 RouDi 종료 대기 중...
+        sleep 1
+    done
+
     ./EM
+
+    echo EM died.
 '

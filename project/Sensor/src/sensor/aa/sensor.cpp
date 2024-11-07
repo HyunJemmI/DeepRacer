@@ -191,10 +191,10 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Bitmap Flatten";
 
-        // cv::imshow("frame2_grayscaled", frame2_grayscaled);
-        // if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
-		// 	m_running = false;
-	    // }
+        cv::imshow("frame2_grayscaled", frame2_grayscaled);
+        if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
+			m_running = false;
+	    }
 
         deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.

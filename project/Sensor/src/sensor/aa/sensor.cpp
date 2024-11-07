@@ -166,15 +166,26 @@ void Sensor::TaskGenerateCEventValue()
         cap1 >> frame1;
         cap2 >> frame2;
 
+        m_logger.LogInfo() << "Frame1 rows size :  = " << frame1.rows;
+        m_logger.LogInfo() << "Frame1 cols size :  = " << frame1.cols;
+        m_logger.LogInfo() << "Frame1 array size :  = " << frame1.rows * frame1.cols;
+
         //GrayScale
         cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
         cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
+
+        m_logger.LogInfo() << "GrayScale Processing Succesfully";
 
         //Flatten
         cv::imencode(".jpeg", frame1, buffer1);
         cv::imencode(".jpeg", frame2, buffer2);
 
+        m_logger.LogInfo() << "Bitmap Flatten";
+
         cv::imshow("frame2_grayscaled", frame2_grayscaled);
+        if (waitKey(10) == 27)	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
+			m_running = false;
+	    }
 
         deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.

@@ -140,7 +140,7 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
         m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
 
-        이미지 확인용
+        // 이미지 확인
         cv::imshow("frame1_grayscaled", frame1_grayscaled);
 	    cv::waitKey(0);
     }
@@ -153,7 +153,7 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
         m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
 
-        이미지 확인용
+        // 이미지 확인
         cv::imshow("frame2_grayscaled", frame2_grayscaled);
 	    cv::waitKey(0);
     }

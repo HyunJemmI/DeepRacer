@@ -63,6 +63,8 @@ void Sensor::Terminate()
 {
     m_logger.LogVerbose() << "Sensor::Terminate";
     
+    m_running = false;
+
     m_CameraData->Terminate();
     m_LidarData->Terminate();
 }
@@ -70,6 +72,8 @@ void Sensor::Terminate()
 void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
+
+    m_running = true;
     
     m_workers.Async([this] { TaskGenerateCEventValue(); });
     m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
@@ -117,9 +121,9 @@ void Sensor::TaskGenerateCEventValue()
 
     cap1 >> frame1;
     cap2 >> frame2;
-    cv::imshow("frame1", frame1);
-    cv::imshow("frame2", frame2);
-	cv::waitKey(0);
+    // cv::imshow("frame1", frame1);
+    // cv::imshow("frame2", frame2);
+	// cv::waitKey(0);
 
     int rows1 = frame1.rows;
     int cols1 = frame1.cols;
@@ -144,8 +148,8 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
 
         // 이미지 확인
-        cv::imshow("frame1_grayscaled", frame1_grayscaled);
-	    cv::waitKey(0);
+        // cv::imshow("frame1_grayscaled", frame1_grayscaled);
+	    // cv::waitKey(0);
     }
 
     if (!frame2.empty()){
@@ -157,8 +161,8 @@ void Sensor::TaskGenerateCEventValue()
         m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
 
         // 이미지 확인
-        cv::imshow("frame2_grayscaled", frame2_grayscaled);
-	    cv::waitKey(0);
+        // cv::imshow("frame2_grayscaled", frame2_grayscaled);
+	    // cv::waitKey(0);
     }
 
     // //Mat2Vec

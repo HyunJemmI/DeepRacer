@@ -117,6 +117,9 @@ void Sensor::TaskGenerateCEventValue()
 
     cap1 >> frame1;
     cap2 >> frame2;
+    cv::imshow("frame1", frame1);
+    cv::imshow("frame2", frame2);
+	cv::waitKey(0);
 
     int rows1 = frame1.rows;
     int cols1 = frame1.cols;

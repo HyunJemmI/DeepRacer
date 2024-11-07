@@ -27,7 +27,8 @@ namespace aa
  
 Sensor::Sensor()
     : m_logger(ara::log::CreateLogger("SENS", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(2)
+    , m_workers(3)
+    , m_running(false)
 {
 }
  
@@ -69,10 +70,21 @@ void Sensor::Terminate()
 void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
+    
+    m_workers.Async([this] { TaskGenerateCEventValue(); });
+    m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
+    m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });
+    
+    m_workers.Wait();
+}
 
+void Sensor::TaskGenerateCEventValue()
+{
+    // Camera 객체 생성
     cv::VideoCapture cap1(0);
     cv::VideoCapture cap2(2);
 
+    // 접근 여부 파악
     if (!cap1.isOpened()) {
         m_logger.LogVerbose() << "Cant Open Camera1";
     }else{
@@ -84,12 +96,99 @@ void Sensor::Run()
     }else{
         m_logger.LogInfo() << "Open Camera2 Successfully";
     }
+
+    // MJPEC 코덱 및 크기 설정
+    cap1.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    cap1.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+    cap2.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    cap2.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
     
-    m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
-    m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });
-    
-    m_workers.Wait();
+    cv::Mat frame1;
+    cv::Mat frame2;
+    cv::Mat frame1_grayscaled;
+    cv::Mat frame2_grayscaled;
+    std::vector<uint8_t> buffer1;
+    std::vector<uint8_t> buffer2;
+
+    // cap1 >> frame1;
+    // cap2 >> frame2;
+
+    // int rows1 = frame1.rows;
+    // int cols1 = frame1.cols;
+    // int arraySize1 = rows1*cols1;
+    // m_logger.LogInfo() << "Frame1 rows size :  = " << rows1;
+    // m_logger.LogInfo() << "Frame1 cols size :  = " << cols1;
+    // m_logger.LogInfo() << "Frame1 array size :  = " << arraySize1;
+
+    // int rows2 = frame2.rows;
+    // int cols2 = frame2.cols;
+    // int arraySize2 = rows2*cols2;
+    // m_logger.LogInfo() << "Frame2 rows size :  = " << rows2;
+    // m_logger.LogInfo() << "Frame2 cols size :  = " << cols2;
+    // m_logger.LogInfo() << "Frame2 array size :  = " << arraySize2;
+
+    // if (!frame1.empty()){
+    //     //GrayScale
+    //     cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
+        
+    //     m_logger.LogInfo() << "Camera frames processed";
+    //     m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
+    //     m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
+
+    //     // 이미지 확인용
+    //     // cv::imshow("frame1_grayscaled", frame1_grayscaled);
+	//     // cv::waitKey(0);
+    // }
+
+    // if (!frame2.empty()){
+    //     //GrayScale
+    //     cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
+        
+    //     m_logger.LogInfo() << "Camera frames processed";
+    //     m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
+    //     m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
+
+    //     // 이미지 확인용
+    //     // cv::imshow("frame2_grayscaled", frame2_grayscaled);
+	//     // cv::waitKey(0);
+    // }
+
+    // //Mat2Vec
+    // imencode(".jpeg", frame1, buffer1);
+    // imencode(".jpeg", frame2, buffer2);
+
+    while (m_running)
+    {
+        //카메라 캡처
+        cap1 >> frame1;
+        cap2 >> frame2;
+
+        //GrayScale
+        cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
+
+        //Flatten
+        cv::imencode(".jpeg", frame1, buffer1);
+        cv::imencode(".jpeg", frame2, buffer2);
+
+        cv::imshow("frame2_grayscaled", frame2_grayscaled);
+
+        deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
+        // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+        m_CameraData->WriteDataCEvent(settingSampleValue);
+
+        m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[1] << ")";
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    cap1.release();
+    cap2.release();
 }
+ 
  
 } /// namespace aa
 } /// namespace sensor

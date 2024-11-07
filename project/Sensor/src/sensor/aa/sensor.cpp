@@ -15,6 +15,10 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensor/aa/sensor.h"
+
+#include <cstdint>
+#include <vector>
+#include <opencv2/opencv.hpp>
  
 namespace sensor
 {
@@ -64,7 +68,24 @@ void Sensor::Terminate()
  
 void Sensor::Run()
 {
+    cv::VideoCapture cap1(0);
+    cv::VideoCapture cap2(2);
+    
     m_logger.LogVerbose() << "Sensor::Run";
+
+    
+
+    if (!cap1.isOpened()) {
+        m_logger.LogVerbose() << "Cant Open Camera1";
+    }else{
+        m_logger.LogInfo() << "Open Camera1 Successfully";
+    }
+
+    if (!cap2.isOpened()) {
+        m_logger.LogVerbose() << "Cant Open Camera2"
+    }else{
+        m_logger.LogInfo() << "Open Camera2 Successfully";
+    }
     
     m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
     m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });

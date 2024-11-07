@@ -191,7 +191,7 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[1] << ")";
 
-        std::this_thread::sleep_for(std::chrono::seconds(0.1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     cap1.release();

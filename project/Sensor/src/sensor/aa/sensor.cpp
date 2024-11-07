@@ -181,7 +181,7 @@ void Sensor::TaskGenerateCEventValue()
 
         cv::imshow("frame1_grayscaled", frame1_grayscaled);
         cv::imshow("frame2_grayscaled", frame2_grayscaled);
-        if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
+        if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력s 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
 			m_running = false;
 	    }
 
@@ -191,7 +191,7 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[1] << ")";
 
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(0.1));
     }
 
     cap1.release();

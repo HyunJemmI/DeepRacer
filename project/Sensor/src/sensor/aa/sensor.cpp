@@ -68,12 +68,10 @@ void Sensor::Terminate()
  
 void Sensor::Run()
 {
-    cv::VideoCapture cap1(0);
-    cv::VideoCapture cap2(2);
-    
     m_logger.LogVerbose() << "Sensor::Run";
 
-    
+    cv::VideoCapture cap1(0);
+    cv::VideoCapture cap2(2);
 
     if (!cap1.isOpened()) {
         m_logger.LogVerbose() << "Cant Open Camera1";

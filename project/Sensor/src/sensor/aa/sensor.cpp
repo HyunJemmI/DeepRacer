@@ -135,6 +135,10 @@ void Sensor::TaskGenerateCEventValue()
 
         cv::imshow("frameR_grayscaled", frameR_grayscaled);
         cv::imshow("frameL_grayscaled", frameL_grayscaled);
+        // esc 누르면 끄기
+        if (cv::waitkey(10) == 27){
+            m_running = false;
+        }
 
         deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = bufferR;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.

@@ -16,6 +16,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensor/aa/sensor.h"
  
+#include <cstdint>
+#include <vector>
+#include <opencv2/opencv.hpp>
+
 namespace sensor
 {
 namespace aa
@@ -23,7 +27,8 @@ namespace aa
  
 Sensor::Sensor()
     : m_logger(ara::log::CreateLogger("SENS", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(2)
+    , m_workers(3)
+    , m_running(false)
 {
 }
  
@@ -56,6 +61,8 @@ void Sensor::Terminate()
 {
     m_logger.LogVerbose() << "Sensor::Terminate";
     
+    m_running = false;
+
     m_RawData->Terminate();
 }
  
@@ -63,10 +70,84 @@ void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
     
+    m_running = true;
+
+    m_workers.Async([this] { TaskGenerateREventValue(); });
     m_workers.Async([this] { m_RawData->SendEventREventCyclic(); });
     m_workers.Async([this] { m_RawData->NotifyFieldRFieldCyclic(); });
     
     m_workers.Wait();
+}
+
+void Sensor::TaskGenerateREventValue()
+{
+    // Camera 객체 생성
+    cv::VideoCapture capR(0);
+    cv::VideoCapture capL(2);
+
+    // 접근 여부 파악
+    if (!capR.isOpened()) {
+        m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Cant Open Right Camera";
+    }else{
+        m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Open Right Camera Successfully";
+    }
+
+    if (!capL.isOpened()) {
+        m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Cant Open Left Camera";
+    }else{
+        m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Open Left Camera Successfully";
+    }
+
+    // MJPEC 코덱 및 크기 설정
+    capR.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    capR.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+    capR.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+    capL.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+    capL.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+    capL.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
+    
+    cv::Mat frameR; // 카메라1 이미지 프레임
+    cv::Mat frameL; // 카메라2 이미지 프레임
+    cv::Mat frameR_grayscaled; // GrayScaled 처리된 프레임1
+    cv::Mat frameL_grayscaled; // GrayScaled 처리된 프레임2
+    std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
+    std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
+
+    while (m_running)
+    {
+        //카메라 캡처
+        capR >> frameR;
+        capL >> frameL;
+
+        //GrayScale
+        cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
+
+        //Flatten
+        cv::imencode(".jpeg", frameR, bufferR);
+        cv::imencode(".jpeg", frameL, bufferL);
+
+        cv::imshow("frameR_grayscaled", frameR_grayscaled);
+        cv::imshow("frameL_grayscaled", frameL_grayscaled);
+        // esc 누르면 끄기
+        if (cv::waitKey(10) == 27){
+            m_running = false;
+        }
+
+        deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferR;
+        // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+        m_RawData->WriteDataREvent(settingSampleValue);
+
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
+    }
+
+    capR.release();
+    capL.release();
 }
  
 } /// namespace aa

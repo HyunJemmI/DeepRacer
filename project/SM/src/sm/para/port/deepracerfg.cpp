@@ -227,6 +227,14 @@ void DeepRacerFG::NotifyDeepRacerFGTriggered(const ara::sm::deepracerfg::skeleto
     m_interface->UpdateDeepRacerFG(value);
     m_interface->NotifyDeepRacerFG();
 }
+
+// 사용자 추가 함수.
+// 이 클래스의 객체를 보유한 즉, SM SortwareComponent측에서 직접 DeepRacerFG FunctionGroup State를 변경 처리 하기 위해 호출하는 함수.
+void DeepRacerFG::ChangeDeepRacerFGManual(const ara::sm::deepracerfg::skeleton::fields::Trigger::FieldType& value)
+{
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_interface->SetTrigger(value);
+}
  
 } /// namespace port
 } /// namespace para

@@ -112,50 +112,12 @@ void Sensor::TaskGenerateCEventValue()
 
     m_logger.LogInfo() << "Setting CODEC Successfully";
     
-    cv::Mat frame1;
-    cv::Mat frame2;
-    cv::Mat frame1_grayscaled;
-    cv::Mat frame2_grayscaled;
-    std::vector<uint8_t> buffer1;
-    std::vector<uint8_t> buffer2;
-
-    cap1 >> frame1;
-    cap2 >> frame2;
-    // cv::imshow("frame1", frame1);
-    // cv::imshow("frame2", frame2);
-	// cv::waitKey(0);
-
-    int rows1 = frame1.rows;
-    int cols1 = frame1.cols;
-    int arraySize1 = rows1*cols1;
-    m_logger.LogInfo() << "Frame1 rows size :  = " << rows1;
-    m_logger.LogInfo() << "Frame1 cols size :  = " << cols1;
-    m_logger.LogInfo() << "Frame1 array size :  = " << arraySize1;
-
-    int rows2 = frame2.rows;
-    int cols2 = frame2.cols;
-    int arraySize2 = rows2*cols2;
-    m_logger.LogInfo() << "Frame2 rows size :  = " << rows2;
-    m_logger.LogInfo() << "Frame2 cols size :  = " << cols2;
-    m_logger.LogInfo() << "Frame2 array size :  = " << arraySize2;
-
-    if (!frame1.empty()){
-        //GrayScale
-        cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
-        
-        m_logger.LogInfo() << "Camera frames processed";
-        m_logger.LogInfo() << "GrayScaled frame1 rows size :  = " << frame1_grayscaled.rows;
-        m_logger.LogInfo() << "GrayScaled frame1 cols size :  = " << frame1_grayscaled.cols;
-    }
-
-    if (!frame2.empty()){
-        //GrayScale
-        cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
-        
-        m_logger.LogInfo() << "Camera frames processed";
-        m_logger.LogInfo() << "GrayScaled frame2 rows size :  = " << frame2_grayscaled.rows;
-        m_logger.LogInfo() << "GrayScaled frame2 cols size :  = " << frame2_grayscaled.cols;
-    }
+    cv::Mat frame1; // 카메라1 이미지 프레임
+    cv::Mat frame2; // 카메라2 이미지 프레임
+    cv::Mat frame1_grayscaled; // GrayScaled 처리된 프레임1
+    cv::Mat frame2_grayscaled; // GrayScaled 처리된 프레임2
+    std::vector<uint8_t> buffer1; // 비트맵 Flatten vector1
+    std::vector<uint8_t> buffer2; // 비트맵 Flatten vector2
 
     while (m_running)
     {

@@ -25,11 +25,11 @@
     "state-dependencies" : [
         {
             "function-group" : "MachineFG",
-            "state" : "Startup"
+            "state" : "Restart"
         },
         {
             "function-group" : "MachineFG",
-            "state" : "Restart"
+            "state" : "Startup"
         },
         {
             "function-group" : "MachineFG",

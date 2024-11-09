@@ -10,15 +10,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : sensor.h
 /// SOFTWARE COMPONENT NAME           : Sensor
-/// GENERATED DATE                    : 2024-11-04 08:32:44
+/// GENERATED DATE                    : 2024-11-01 13:31:53
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef PARA_AA_GEN_SOFTWARE_COMPONENT_SENSOR_AA_H
 #define PARA_AA_GEN_SOFTWARE_COMPONENT_SENSOR_AA_H
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "sensor/aa/port/cameradata.h"
-#include "sensor/aa/port/lidardata.h"
+#include "sensor/aa/port/rawdata.h"
  
 #include "para/swc/port_pool.h"
  
@@ -56,11 +55,8 @@ private:
     /// @brief Logger for software component
     ara::log::Logger& m_logger;
     
-    /// @brief Instance of Port {Sensor.CameraData}
-    std::shared_ptr<sensor::aa::port::CameraData> m_CameraData;
-    
-    /// @brief Instance of Port {Sensor.LidarData}
-    std::shared_ptr<sensor::aa::port::LidarData> m_LidarData;
+    /// @brief Instance of Port {Sensor.RawData}
+    std::shared_ptr<sensor::aa::port::RawData> m_RawData;
 };
  
 } /// namespace aa

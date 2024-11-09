@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : sensor.cpp
 /// SOFTWARE COMPONENT NAME           : Sensor
-/// GENERATED DATE                    : 2024-11-04 08:32:44
+/// GENERATED DATE                    : 2024-11-01 13:31:53
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,8 +37,7 @@ bool Sensor::Initialize()
     
     bool init{true};
     
-    m_CameraData = std::make_shared<sensor::aa::port::CameraData>();
-    m_LidarData = std::make_shared<sensor::aa::port::LidarData>();
+    m_RawData = std::make_shared<sensor::aa::port::RawData>();
     
     return init;
 }
@@ -47,8 +46,7 @@ void Sensor::Start()
 {
     m_logger.LogVerbose() << "Sensor::Start";
     
-    m_CameraData->Start();
-    m_LidarData->Start();
+    m_RawData->Start();
     
     // run software component
     Run();
@@ -58,16 +56,15 @@ void Sensor::Terminate()
 {
     m_logger.LogVerbose() << "Sensor::Terminate";
     
-    m_CameraData->Terminate();
-    m_LidarData->Terminate();
+    m_RawData->Terminate();
 }
  
 void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
     
-    m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
-    m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });
+    m_workers.Async([this] { m_RawData->SendEventREventCyclic(); });
+    m_workers.Async([this] { m_RawData->NotifyFieldRFieldCyclic(); });
     
     m_workers.Wait();
 }

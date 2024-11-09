@@ -136,7 +136,7 @@ void Sensor::TaskGenerateCEventValue()
         cv::imshow("frameR_grayscaled", frameR_grayscaled);
         cv::imshow("frameL_grayscaled", frameL_grayscaled);
         // esc 누르면 끄기
-        if (cv::waitkey(10) == 27){
+        if (cv::waitKey(10) == 27){
             m_running = false;
         }
 

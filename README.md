@@ -58,6 +58,13 @@ export PATH=$ROOT_DIR/scripts:$PATH
 - (i) git rebase --abort //rebase하려고 했는데 충돌이 날 때, 되돌리기
 - vscode에서 충돌난 부분 잘 확인해서 수정
 
+#### git pull 반영 안되는 경우
+- 강제로 git pull 하기
+1. git fetch --all
+2. git reset --hard origin/master
+3. git pull 
+
+
 ---
 ### [커밋 규칙]
 - **[INITIAL]** — 리포지토리를 생성하고 최초로 파일을 업로드할 때 사용

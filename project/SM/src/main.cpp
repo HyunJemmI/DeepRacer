@@ -58,7 +58,7 @@ int main(int argc, char *argv[], char* envp[])
         g_swcSM = &swcSM;
         
         // initialize software component
-        proceed = swcSM.Initialize();
+        proceed = swcSM.Initialize(argc, argv);
         
         if (proceed)
         {

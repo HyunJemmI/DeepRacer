@@ -48,8 +48,15 @@ public:
 private:
     /// @brief Run software component
     void Run();
+    
+    void TaskReceiveREventCyclic();
+
+    void OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType& sample);
+
  
 private:
+    bool m_running;
+
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     

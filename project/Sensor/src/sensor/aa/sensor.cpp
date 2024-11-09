@@ -129,19 +129,12 @@ void Sensor::TaskGenerateCEventValue()
         cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
         cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
-        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - GrayScale Processing Succesfully";
-
         //Flatten
         cv::imencode(".jpeg", frameR, bufferR);
         cv::imencode(".jpeg", frameL, bufferL);
 
-        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - Bitmap Flatten";
-
         cv::imshow("frameR_grayscaled", frameR_grayscaled);
         cv::imshow("frameL_grayscaled", frameL_grayscaled);
-        if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력s 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
-			m_running = false;
-	    }
 
         deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = bufferR;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
@@ -149,7 +142,7 @@ void Sensor::TaskGenerateCEventValue()
 
         m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[10000] << ")";
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
     }
 
     cap1.release();

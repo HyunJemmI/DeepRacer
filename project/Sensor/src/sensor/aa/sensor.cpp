@@ -90,15 +90,15 @@ void Sensor::TaskGenerateCEventValue()
 
     // 접근 여부 파악
     if (!cap1.isOpened()) {
-        m_logger.LogVerbose() << "Cant Open Camera1";
+        m_logger.LogVerbose() << "Sensor::TaskGenerateCEventValue - Cant Open Camera1";
     }else{
-        m_logger.LogInfo() << "Open Camera1 Successfully";
+        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - Open Camera1 Successfully";
     }
 
     if (!cap2.isOpened()) {
-        m_logger.LogVerbose() << "Cant Open Camera2";
+        m_logger.LogVerbose() << "Sensor::TaskGenerateCEventValue - Cant Open Camera2";
     }else{
-        m_logger.LogInfo() << "Open Camera2 Successfully";
+        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - Open Camera2 Successfully";
     }
 
     // MJPEC 코덱 및 크기 설정
@@ -110,48 +110,44 @@ void Sensor::TaskGenerateCEventValue()
     cap2.set(cv::CAP_PROP_FRAME_WIDTH, 160);
     cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
 
-    m_logger.LogInfo() << "Setting CODEC Successfully";
+    m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - Setting CODEC Successfully";
     
-    cv::Mat frame1; // 카메라1 이미지 프레임
-    cv::Mat frame2; // 카메라2 이미지 프레임
-    cv::Mat frame1_grayscaled; // GrayScaled 처리된 프레임1
-    cv::Mat frame2_grayscaled; // GrayScaled 처리된 프레임2
-    std::vector<uint8_t> buffer1; // 비트맵 Flatten vector1
-    std::vector<uint8_t> buffer2; // 비트맵 Flatten vector2
+    cv::Mat frameR; // 카메라1 이미지 프레임
+    cv::Mat frameL; // 카메라2 이미지 프레임
+    cv::Mat frameR_grayscaled; // GrayScaled 처리된 프레임1
+    cv::Mat frameL_grayscaled; // GrayScaled 처리된 프레임2
+    std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
+    std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
 
     while (m_running)
     {
         //카메라 캡처
-        cap1 >> frame1;
-        cap2 >> frame2;
-
-        m_logger.LogInfo() << "Frame1 rows size :  = " << frame1.rows;
-        m_logger.LogInfo() << "Frame1 cols size :  = " << frame1.cols;
-        m_logger.LogInfo() << "Frame1 array size :  = " << frame1.rows * frame1.cols;
+        cap1 >> frameR;
+        cap2 >> frameL;
 
         //GrayScale
-        cv::cvtColor(frame1, frame1_grayscaled, cv::COLOR_BGR2GRAY);
-        cv::cvtColor(frame2, frame2_grayscaled, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
+        cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
-        m_logger.LogInfo() << "GrayScale Processing Succesfully";
+        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - GrayScale Processing Succesfully";
 
         //Flatten
-        cv::imencode(".jpeg", frame1, buffer1);
-        cv::imencode(".jpeg", frame2, buffer2);
+        cv::imencode(".jpeg", frameR, bufferR);
+        cv::imencode(".jpeg", frameL, bufferL);
 
-        m_logger.LogInfo() << "Bitmap Flatten";
+        m_logger.LogInfo() << "Sensor::TaskGenerateCEventValue - Bitmap Flatten";
 
-        cv::imshow("frame1_grayscaled", frame1_grayscaled);
-        cv::imshow("frame2_grayscaled", frame2_grayscaled);
+        cv::imshow("frameR_grayscaled", frameR_grayscaled);
+        cv::imshow("frameL_grayscaled", frameL_grayscaled);
         if (cv::waitKey(10) == 27){	// 10ms 동안 키보드 입력s 대기, 키보드 입력고 있고 해당 키값이 ESC 면 루프 나감
 			m_running = false;
 	    }
 
-        deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
+        deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = bufferR;
         // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_CameraData->WriteDataCEvent(settingSampleValue);
 
-        m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[1] << ")";
+        m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[10000] << ")";
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }

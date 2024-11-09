@@ -61,7 +61,9 @@ public:
     /// @brief Read event data, CEvent
     void ReadDataCEvent(ara::com::SamplePtr<deepracer::service::cameradata::proxy::events::CEvent::SampleType const> samplePtr);
     
-    
+    void SetReceiveEventCEventHandler(
+    std::function<void(const deepracer::service::cameradata::proxy::events::CEvent::SampleType&)> handler);
+
     
 private:
     /// @brief Callback for find service
@@ -90,6 +92,8 @@ private:
     
     /// @brief Find service handle
     std::shared_ptr<ara::com::FindServiceHandle> m_findHandle;
+
+    std::function<void(const deepracer::service::cameradata::proxy::events::CEvent::SampleType&)> m_receiveEventCEventHandler;
 };
  
 } /// namespace port

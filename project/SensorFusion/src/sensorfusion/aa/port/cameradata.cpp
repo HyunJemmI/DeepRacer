@@ -13,7 +13,10 @@
 /// GENERATED DATE                    : 2024-11-04 08:32:44
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensorfusion/aa/port/cameradata.h"
- 
+
+#include <string>
+#include <vector>
+
 namespace sensorfusion
 {
 namespace aa
@@ -224,6 +227,21 @@ void CameraData::ReadDataCEvent(ara::com::SamplePtr<deepracer::service::camerada
 {
     auto data = *samplePtr.Get();
     // put your logic
+    m_logger.LogInfo() << "CameraData::ReadDataCEvent::data::" << data[1];
+
+    // REvent 핸들러가 등록되어 있을시 해당 핸들러는 값과 함께 호출한다.
+    if (m_receiveEventCEventHandler != nullptr)
+    {
+        m_receiveEventCEventHandler(data);
+    }
+}
+
+// 개발자 추가 함수
+// REvent 수신에 대한 핸들러 등록 함수.
+void CameraData::SetReceiveEventCEventHandler(
+    std::function<void(const deepracer::service::cameradata::proxy::events::CEvent::SampleType&)> handler)
+{
+    m_receiveEventCEventHandler = handler;
 }
  
 } /// namespace port

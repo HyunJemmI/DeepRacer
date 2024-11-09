@@ -48,8 +48,12 @@ public:
 private:
     /// @brief Run software component
     void Run();
+
+    void TaskGenerateCEventValue();
  
 private:
+    bool m_running;
+
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     

@@ -90,6 +90,7 @@ void CameraData::WriteDataCEvent(const deepracer::service::cameradata::skeleton:
 {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_CEventData = data;
+    m_logger.LogInfo() << "CameraData::WriteDataCEvent(" << data[1] << ")";
 }
  
 void CameraData::SendEventCEventCyclic()

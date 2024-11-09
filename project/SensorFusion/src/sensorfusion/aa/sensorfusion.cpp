@@ -16,6 +16,10 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensorfusion/aa/sensorfusion.h"
  
+#include <cstdint>
+#include <vector>
+#include <opencv2/opencv.hpp>
+
 namespace sensorfusion
 {
 namespace aa
@@ -72,12 +76,30 @@ void SensorFusion::Run()
 {
     m_logger.LogVerbose() << "SensorFusion::Run";
     
-    m_workers.Async([this] { m_CameraData->ReceiveEventCEventCyclic(); });
+    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
     m_workers.Async([this] { m_FusionData->SendEventFEventCyclic(); });
     m_workers.Async([this] { m_LidarData->ReceiveEventLEventCyclic(); });
     m_workers.Async([this] { m_SimulationData->ReceiveEventSEventCyclic(); });
     
     m_workers.Wait();
+}
+
+void SensorFusion::TaskReceiveCEventCyclic()
+{
+    m_CameraData->SetReceiveEventCEventHandler([this](const auto& sample)
+    {
+        OnReceiveCEvent(sample);
+    });
+    m_CameraData->ReceiveEventCEventCyclic();
+}
+
+void SensorFusion::OnReceiveCEvent(const deepracer::service::cameradata::proxy::events::CEvent::SampleType& sample)
+{
+    std::vector<float> vec = {18.18f, 28.28f};
+
+    // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+    m_FusionData->WriteDataFEvent(vec);
+    m_logger.LogInfo() << "SensorFusion::OnReceiveCEvent(" << sample[1] << ")";
 }
  
 } /// namespace aa

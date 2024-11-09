@@ -50,6 +50,12 @@ public:
 private:
     /// @brief Run software component
     void Run();
+    
+    void TaskReceiveCEventCyclic();
+
+    void OnReceiveCEvent
+    (const deepracer::service::cameradata::proxy::events::CEvent::SampleType& sample);
+
  
 private:
     /// @brief Pool of port

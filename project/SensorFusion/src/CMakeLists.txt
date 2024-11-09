@@ -3,6 +3,8 @@
 # Copyright(c) 2024 by PopcornSAR Co.,Ltd. All rights reserved.
 # ============================================================================
  
+set(OpenCV_DIR /home/ubuntu/opencv/build)
+find_package(OpenCV REQUIRED)
 add_executable(${PARA_APP_NAME})
  
 # ============================================================================
@@ -17,11 +19,13 @@ Para_Target(${PARA_APP_NAME}
 # ============================================================================
 target_include_directories(${PARA_APP_NAME}
                            PRIVATE
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include)
+                           ${CMAKE_CURRENT_SOURCE_DIR}/include
+                           ${OpenCV_INCLUDE_DIRS})
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
-                      pthread)
+                      pthread
+                      ${OpenCV_LIBS})
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE

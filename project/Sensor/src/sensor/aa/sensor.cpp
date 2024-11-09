@@ -16,6 +16,12 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensor/aa/sensor.h"
  
+#include <opencv2/opencv.hpp>
+#include <cstdint>
+#include <vector>
+
+#define IMAGE_PATH "/home/ubuntu/AAProject/Sensor/src/sensor/aa/left_camera_1727867367.png"
+
 namespace sensor
 {
 namespace aa
@@ -23,7 +29,8 @@ namespace aa
  
 Sensor::Sensor()
     : m_logger(ara::log::CreateLogger("SENS", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(2)
+    , m_workers(3)
+    , m_running(false)
 {
 }
  
@@ -58,6 +65,8 @@ void Sensor::Terminate()
 {
     m_logger.LogVerbose() << "Sensor::Terminate";
     
+    m_running = false;
+
     m_CameraData->Terminate();
     m_LidarData->Terminate();
 }
@@ -66,10 +75,35 @@ void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
     
+    m_running = true;
+    
+    m_workers.Async([this] { TaskGenerateCEventValue(); });
     m_workers.Async([this] { m_CameraData->SendEventCEventCyclic(); });
     m_workers.Async([this] { m_LidarData->SendEventLEventCyclic(); });
     
     m_workers.Wait();
+}
+
+void Sensor::TaskGenerateCEventValue()
+{
+    // 사진으로 테스트
+    std::string path = IMAGE_PATH;
+    cv::Mat frame1 = cv::imread(path);
+    cv::Mat grayframe1;
+    std::vector<uint8_t> buffer1;
+
+    cv::cvtColor(frame1, grayframe1, cv::COLOR_BGR2GRAY);
+    imencode(".jpeg", frame1, buffer1);
+    while (m_running)
+    {
+        deepracer::service::cameradata::skeleton::events::CEvent::SampleType settingSampleValue = buffer1;
+        // CameraData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+        m_CameraData->WriteDataCEvent(settingSampleValue);
+
+        m_logger.LogInfo() << "Sensor::Call CameraData->WriteDataCEvent(" << settingSampleValue[1] << ")";
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 }
  
 } /// namespace aa

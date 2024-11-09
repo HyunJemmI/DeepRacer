@@ -15,107 +15,121 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "actuator/aa/actuator.h"
+#include "ara/log/logger.h"
+#include <chrono>
+#include <thread>
 
 namespace actuator
 {
-namespace aa
-{
-
-Actuator::Actuator()
-    : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(1) // m_workers.Async에 등록가능한 함수 갯수
-{
-}
-
-Actuator::~Actuator()
-{
-}
-
-// Actuator Software Component의 초기화 함수.
-// 설계하였던 Port 객체들을 생성한다.
-bool Actuator::Initialize()
-{
-    m_logger.LogInfo() << "Actuator::Initialize";
-
-    bool init{true};
-
-    // ControlData RPort 객체의 생성
-    m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
-
-    return init;
-}
-
-// 모터 시작 함수
-bool Actuator::ControlMotorStart()
-{
-    m_logger.LogInfo() << "Starting Motor Control";
-    // 모터 제어 시작 명령을 전송
-    m_ControlData->StartMotor();
-}
-
-// 모터 속도 설정 함수
-bool Actuator::ControlMotorSpeed(float speed)
-{
-    m_logger.LogInfo() << "Setting Motor Speed to " << speed;
-    m_ControlData->SetMotorSpeed(speed);
-}
-
-// 모터 정지 함수
-bool ControlMotorStop()
-{
-    m_logger.LogInfo() << "Stoping Motor Control";
-    // 모터 제어 시작 명령을 전송
-    m_ControlData->StopMotor();
-}
-
-// Actuator Software Component의 시작 함수
-void Actuator::Start()
-{
-    m_logger.LogInfo() << "Actuator::Start";
-
-    // ControlData RPort 의 Start() 함수를 호출한다.
-    m_ControlData->Start();
-
-    // run software component
-    Run();
-}
-
-// Actuator가 종료되어야 할때 호출되는 함수.
-void Actuator::Terminate()
-{
-    m_logger.LogInfo() << "Actuator::Terminate";
-
-    // ControlData RPort 에 대한 Terminate() 함수를 호출한다.
-    m_ControlData->Terminate();
-}
-
-// Actuator Software Component의 수행 함수
-void Actuator::Run()
-{
-    m_logger.LogInfo() << "Actuator::Run";
-
-    // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
-    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
-
-    // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
-    m_workers.Wait();
-}
-
-// ControlData CEvent의 Cyclic 수신처리에 대한 수행
-void Actuator::TaskReceiveCEventCyclic()
-{
-    m_ControlData->SetReceiveEventCEventHandler([this](const auto& sample)
+    namespace aa
     {
-        OnReceiveCEvent(sample);
-    });
-    m_ControlData->ReceiveEventCEventCyclic();
-}
+        namespace constants
+        {
+            constexpr std::chrono::nanoseconds SERVO_PERIOD{20'000'000}; // 20ms in nanoseconds
+        } // namespace constants
 
-// ControlData CEvent를 받았을시의 처리 함수
-void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType& sample)
-{
-    m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
-}
+        Actuator::Actuator()
+            : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose)), m_workers(1), // m_workers.Async에 등록가능한 함수 갯수
+              m_throttle(std::make_unique<PWM::Servo>(0)),
+              m_steering(std::make_unique<PWM::Servo>(1))
+        {
+            m_throttle->setPeriod(constants::SERVO_PERIOD.count());
+            m_steering->setPeriod(constants::SERVO_PERIOD.count());
+        }
 
-} /// namespace aa
+        Actuator::~Actuator()
+        {
+        }
+
+        // Actuator Software Component의 초기화 함수.
+        // 설계하였던 Port 객체들을 생성한다.
+        bool Actuator::Initialize()
+        {
+            m_logger.LogInfo() << "Actuator::Initialize";
+
+            bool init{true};
+
+            // ControlData RPort 객체의 생성
+            m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
+
+            return init;
+        }
+
+        // Actuator Software Component의 시작 함수
+        void Actuator::Start()
+        {
+            m_logger.LogInfo() << "Actuator::Start";
+
+            // ControlData RPort 의 Start() 함수를 호출한다.
+            m_ControlData->Start();
+
+            // run software component
+            Run();
+        }
+
+        // Actuator가 종료되어야 할때 호출되는 함수.
+        void Actuator::Terminate()
+        {
+            m_logger.LogInfo() << "Actuator::Terminate";
+
+            // ControlData RPort 에 대한 Terminate() 함수를 호출한다.
+            m_ControlData->Terminate();
+        }
+
+        // Actuator Software Component의 수행 함수
+        void Actuator::Run()
+        {
+            m_logger.LogInfo() << "Actuator::Run";
+
+            // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
+            m_workers.Async([this]
+                            { TaskReceiveCEventCyclic(); });
+
+            // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
+            m_workers.Wait();
+        }
+
+        // ControlData CEvent의 Cyclic 수신처리에 대한 수행
+        void Actuator::TaskReceiveCEventCyclic()
+        {
+            m_ControlData->SetReceiveEventCEventHandler([this](const auto &sample)
+                                                        { OnReceiveCEvent(sample); });
+            m_ControlData->ReceiveEventCEventCyclic();
+        }
+
+        // ControlData CEvent를 받았을시의 처리 함수
+        void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
+        {
+            m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
+
+            // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
+            // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
+            float throttle = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+            float steering = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+
+            // 모터 제어 로직
+            SetMotorControl(throttle, steering);
+
+            // 서보 모터가 동작할 시간을 주기 위해 잠시 대기합니다.
+            std::this_thread::sleep_for(constants::SERVO_PERIOD);
+
+            // 로그를 통해 동작 상태를 확인합니다.
+            m_logger.LogInfo() << "Actuator set - Throttle: " << throttle << ", Steering: " << steering;
+        }
+
+        void Actuator::SetMotorControl(float throttle, float steering)
+        {
+            // throttle과 steering 값을 -1.0에서 1.0 사이로 제한
+            throttle = std::clamp(throttle, -1.0f, 1.0f);
+            steering = std::clamp(steering, -1.0f, 1.0f);
+
+            // PWM 듀티 사이클 계산 (0에서 SERVO_PERIOD 사이의 값으로 변환)
+            int throttle_duty = static_cast<int>((throttle + 1.0f) / 2.0f * constants::SERVO_PERIOD.count());
+            int steering_duty = static_cast<int>((steering + 1.0f) / 2.0f * constants::SERVO_PERIOD.count());
+
+            // PWM 신호 설정
+            m_throttle->setDuty(throttle_duty);
+            m_steering->setDuty(steering_duty);
+        }
+    } /// namespace aa
 } /// namespace actuator

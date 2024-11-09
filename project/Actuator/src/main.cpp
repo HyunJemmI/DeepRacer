@@ -22,7 +22,7 @@
 
 #include <csignal>
 
-actuator::aa::Actuator* g_swcActuator{nullptr};
+actuator::aa::Actuator *g_swcActuator{nullptr};
 
 // Signal 처리 함수
 static void SignalHandler(std::int32_t signal)
@@ -35,7 +35,7 @@ static void SignalHandler(std::int32_t signal)
     }
 }
 
-int main(int argc, char *argv[], char* envp[])
+int main(int argc, char *argv[], char *envp[])
 {
     bool proceed{true};
     bool araInitialized{true};
@@ -51,7 +51,7 @@ int main(int argc, char *argv[], char* envp[])
 
     if (araInitialized)
     {
-        ara::log::Logger& appLogger{ara::log::CreateLogger("ACTR", "Actuator's main function")};
+        ara::log::Logger &appLogger{ara::log::CreateLogger("ACTR", "Actuator's main function")};
 
         // Signal Handler 등록
         std::signal(SIGTERM, SignalHandler);
@@ -78,10 +78,6 @@ int main(int argc, char *argv[], char* envp[])
                 appLogger.LogError() << "Unable to report execution state";
                 araInitialized = false;
             }
-            /**********************************/
-            swcActuator.ControlMotorStart(); // 모터 시작
-            swcActuator.ControlMotorSpeed(1.0); //속도 설정 (예: 1.0m/s)
-
             // Software Component의 시작함수 호출
             swcActuator.Start();
         }
@@ -101,4 +97,3 @@ int main(int argc, char *argv[], char* envp[])
 
     return (araInitialized && proceed) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

@@ -16,9 +16,17 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
  
-#include <cstdint>
-#include <vector>
+#include <iostream>
+#include <fstream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
 #include <opencv2/opencv.hpp>
+#include <vector>
+#include <chrono>
+#include <cstdint>
 
 namespace calc
 {
@@ -100,8 +108,26 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferR.size() = " << bufferR.size();
     m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferL.size() = " << bufferL.size();
 
-    cv::Mat imageRight(120, 160, CV_8U, bufferR.data());
-    cv::Mat imageLeft(120, 160, CV_8U, bufferL.data());
+    std::string data_path = "/home/ubuntu/test_socket_AA_data"
+    double timestamp;
+    std::memcpy(&timestamp, buffer, sizeof(double));  // Copy timestamp
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - Timestamp: " << timestamp;
+
+    try {
+        if ((bufferR.size() != 160 * 120) || (bufferL.size() != 160 * 120)) {
+            m_logger.LogVerbose() << "Calc::OnReceiveREvent - Warning: received image size does not match expected size";
+            m_running = false;
+        }else{
+            cv::Mat imgR(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferR.data()));
+            cv::Mat imgL(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferL.data()));
+            cv::imwrite(data_path + "/" + "right" + "_" + std::to_string(timestamp) + ".png", imgR);
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - Camera data ( right ) saved";
+            cv::imwrite(data_path + "/" + "left" + "_" + std::to_string(timestamp) + ".png", imgL);
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - Camera data ( left ) saved";
+        }
+    } catch (const std::exception& e) {
+        m_logger.LogVerbose() << "Calc::OnReceiveREvent - Error saving camera data: " << e.what();
+    }
 
     // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
     m_ControlData->WriteDataCEvent(sample);

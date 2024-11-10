@@ -1,0 +1,43 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "execution-manifest",
+    "process-name" : "EM",
+    "executable" : "EM",
+    "executable-version" : "1.0.0",
+    "reporting-behavior" : "not-report",
+    "num-of-restart-attempts" : "0",
+    "functional-cluster-affiliation" : "none",
+    "startup-config" : {
+    	"policy" : "other",
+    	"priority" : "undefined",
+    	"program-argument" : "",
+    	"startup-timeout" : "undefined",
+    	"termination-timeout" : "undefined",
+    	"termination-behavior" : "undefined",
+    	"environment-variables" : [
+    	]
+    },
+    "resource-group" : {
+    	"cpu-usage" : "undefined",
+    	"mem-usage" : "undefined"
+    },
+    "state-dependencies" : [
+    ],
+    "execution-dependencies" : [
+    ],
+    "log-trace-configuration" : {
+    	"default-log-level" : "error",
+    	"log-modes" : [
+    	    "console"
+    	],
+    	"application-id" : "EM",
+    	"application-description" : "undefined",
+    	"context-id" : "EM",
+    	"file-path" : "undefined"
+    },
+    "core-affinity" : [
+    ],
+    "allowed-persistencies" : [
+    ]
+}

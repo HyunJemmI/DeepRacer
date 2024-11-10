@@ -23,7 +23,10 @@ namespace aa
  
 Actuator::Actuator()
     : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(1)
+    , m_workers(2)
+    , m_running(false)
+    , servoMgr(std::make_unique<PWM::ServoMgr>())
+    , ledMgr(std::make_unique<PWM::LedMgr>())
 {
 }
  
@@ -56,16 +59,31 @@ void Actuator::Terminate()
 {
     m_logger.LogVerbose() << "Actuator::Terminate";
     
+    m_running = false;
+
     m_ControlData->Terminate();
 }
  
 void Actuator::Run()
 {
     m_logger.LogVerbose() << "Actuator::Run";
+
+    m_running = true;
     
+    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
     m_workers.Async([this] { m_ControlData->ReceiveEventCEventCyclic(); });
     
     m_workers.Wait();
+}
+
+void Actuator::TaskReceiveCEventCyclic()
+{
+    float cur_motor = 0,5;
+    float cur_servo = 0.5;
+    while(m_running){
+        servoMgr->servoSubscriber(cur_motor, cur_servo);
+    }
+    servoMgr->servoSubscriber(0, 0);
 }
  
 } /// namespace aa

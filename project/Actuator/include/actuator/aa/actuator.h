@@ -20,6 +20,11 @@
 #include "actuator/aa/port/controldata.h"
  
 #include "para/swc/port_pool.h"
+
+#include "servo_mgr.hpp"
+#include "led_mgr.hpp"
+
+#include <iostream>
  
 namespace actuator
 {
@@ -49,6 +54,8 @@ private:
     void Run();
  
 private:
+    bool m_running;
+    
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     
@@ -57,6 +64,9 @@ private:
     
     /// @brief Instance of Port {Actuator.ControlData}
     std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
+
+    PWM::ServoMgr servoMgr;
+    PWM::LedMgr ledMgr;
 };
  
 } /// namespace aa

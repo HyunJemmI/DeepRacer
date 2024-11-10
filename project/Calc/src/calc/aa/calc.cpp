@@ -16,17 +16,11 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
  
-#include <iostream>
-#include <fstream>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <cstring>
-#include <opencv2/opencv.hpp>
 #include <vector>
-#include <chrono>
 #include <cstdint>
+#include <memory>
+#include <chrono>
+#include <opencv2/opencv.hpp>  // OpenCV 관련 함수 사용을 위해 유지
 
 namespace calc
 {

@@ -19,6 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "actuator/aa/port/controldata.h"
 #include "para/swc/port_pool.h"
+#include "bios_version.hpp"
 #include "pwm.hpp"
 #include <memory>
 
@@ -26,6 +27,7 @@ namespace actuator
 {
     namespace aa
     {
+        using PWM::BiosVersion;
 
         class Actuator
         {
@@ -45,6 +47,9 @@ namespace actuator
             /// @brief Terminate software component
             void Terminate();
 
+            /// actuator test function
+            void testFunction();
+
         private:
             /// @brief Run software component
             void Run();
@@ -58,6 +63,8 @@ namespace actuator
             void SetMotorControl(float throttle, float steering);
 
         private:
+            bool m_running; //flag Run()
+
             /// @brief Pool of port
             ::para::swc::PortPool m_workers;
 

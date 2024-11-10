@@ -15,7 +15,10 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "actuator/aa/actuator.h"
+#include "actuator/aa/bios_version.hpp"
 #include "ara/log/logger.h"
+#include <fstream>
+#include <string>
 #include <chrono>
 #include <thread>
 
@@ -31,7 +34,8 @@ namespace actuator
         Actuator::Actuator()
             : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose)), m_workers(1), // m_workers.Async에 등록가능한 함수 갯수
               m_throttle(std::make_unique<PWM::Servo>(0)),
-              m_steering(std::make_unique<PWM::Servo>(1))
+              m_steering(std::make_unique<PWM::Servo>(1)),
+              m_running(false)
         {
             m_throttle->setPeriod(constants::SERVO_PERIOD.count());
             m_steering->setPeriod(constants::SERVO_PERIOD.count());
@@ -72,6 +76,8 @@ namespace actuator
         {
             m_logger.LogInfo() << "Actuator::Terminate";
 
+            m_running = false;
+
             // ControlData RPort 에 대한 Terminate() 함수를 호출한다.
             m_ControlData->Terminate();
         }
@@ -81,12 +87,13 @@ namespace actuator
         {
             m_logger.LogInfo() << "Actuator::Run";
 
-            // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
-            m_workers.Async([this]
-                            { TaskReceiveCEventCyclic(); });
+            m_running = true;
 
-            // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
-            m_workers.Wait();
+            while(m_running) {
+                testFunction();
+
+                std::this_thread::sleep_for(std::chrono::milliseconds(100)); //100ms
+            }
         }
 
         // ControlData CEvent의 Cyclic 수신처리에 대한 수행
@@ -97,10 +104,33 @@ namespace actuator
             m_ControlData->ReceiveEventCEventCyclic();
         }
 
+        // ControlData CEvent를 받았을시의 처리 함수(test)
+        void Actuator::testFunction()
+        {
+            m_logger.LogInfo() << "Actuator::testFunction";
+
+            // // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
+            // // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
+            // float throttle = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+            // float steering = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+
+            float throttle = 1.0f;
+            float steering = 0.5f;
+
+            // 모터 제어 로직
+            SetMotorControl(throttle, steering);
+
+            // 서보 모터가 동작할 시간을 주기 위해 잠시 대기합니다.
+            std::this_thread::sleep_for(constants::SERVO_PERIOD);
+
+            // 로그를 통해 동작 상태를 확인합니다.
+            m_logger.LogInfo() << "Actuator set - Throttle: " << throttle << ", Steering: " << steering;
+        }
+
         // ControlData CEvent를 받았을시의 처리 함수
         void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
         {
-            m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
+            m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample << " ! ";
 
             // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
             // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.

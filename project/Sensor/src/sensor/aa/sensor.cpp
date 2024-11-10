@@ -132,7 +132,6 @@ void Sensor::TaskGenerateREventValue()
     cv::Mat frameL_grayscaled; // GrayScaled 처리된 프레임2
     std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
     std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
-    std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
 
     char buffer[65536];
     sockaddr_in addr;
@@ -189,6 +188,8 @@ void Sensor::TaskGenerateREventValue()
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
         }
+        
+        std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
         bufferCombined.reserve(bufferR.size() + bufferL.size());
         bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
         bufferCombined.insert(bufferCombined.end(), bufferL.begin(), bufferL.end());

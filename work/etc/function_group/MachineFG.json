@@ -1,0 +1,30 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "function-group-manifest",
+    "function-group-name" : "MachineFG",
+    "meta-model-identifier" : "MachineFG",
+    "init-state" : "Off",
+    "function-group-states" : [
+        {
+            "state" : "Off",
+            "meta-model-identifier" : "MachineFG/Off"
+        },
+        {
+            "state" : "Restart",
+            "meta-model-identifier" : "MachineFG/Restart"
+        },
+        {
+            "state" : "Shutdown",
+            "meta-model-identifier" : "MachineFG/Shutdown"
+        },
+        {
+            "state" : "Startup",
+            "meta-model-identifier" : "MachineFG/Startup"
+        },
+        {
+            "state" : "Verify",
+            "meta-model-identifier" : "MachineFG/Verify"
+        }
+    ]
+}

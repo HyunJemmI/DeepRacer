@@ -29,7 +29,7 @@ Sensor::Sensor()
     , udp_ip("172.31.41.14") // IP on the receiving side of the data
     , udp_port(65534) // Port Number
     , sock(socket(AF_INET, SOCK_DGRAM, 0)) // udp 통신 소켓
-    , data_path("/home/pyo/Desktop/AWS/socket/data")
+    , data_path("/home/ubuntu/test_socket_AA_data")
     , last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
     , save_interval(std::chrono::seconds(5)) // path로 데이터 저장 주기
 {

@@ -171,8 +171,8 @@ void Sensor::TaskGenerateREventValue()
             cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
             //Flatten
-            cv::imencode(".jpeg", frameR, bufferR);
-            cv::imencode(".jpeg", frameL, bufferL);
+            cv::imencode(".jpeg", frameR_grayscaled, bufferR);
+            cv::imencode(".jpeg", frameL_grayscaled, bufferL);
 
             cv::imshow("frameR_grayscaled", frameR_grayscaled);
             cv::imshow("frameL_grayscaled", frameL_grayscaled);

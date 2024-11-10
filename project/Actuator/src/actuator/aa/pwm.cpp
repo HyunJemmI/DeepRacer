@@ -1,4 +1,5 @@
 #include "actuator/aa/pwm.hpp"
+#include "ara/log/logger.h"
 
 namespace PWM
 {

@@ -32,6 +32,9 @@ target_sources(${PARA_APP_NAME}
                actuator/aa/port/controldata.cpp
                actuator/aa/actuator.cpp
                actuator/aa/pwm.cpp
+               actuator/aa/servo_mgr.cpp
+               actuator/aa/utility.cpp
+               actuator/aa/jsoncpp.cpp
                main.cpp
 )
 # ============================================================================

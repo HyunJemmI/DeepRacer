@@ -221,23 +221,23 @@ void Sensor::save_lidar_data(const std::vector<float>& lidar_data, double timest
             file << value << "\n";
         }
         file.close();
-        // m_logger.LogInfo() << "Sensor::save_lidar_data - Lidar data saved";
+        m_logger.LogInfo() << "Sensor::save_lidar_data - Lidar data saved";
     } catch (const std::exception& e) {
-        // m_logger.LogVerbose() << "Sensor::save_lidar_data - Error saving lidar data: " << e.what();
+        m_logger.LogVerbose() << "Sensor::save_lidar_data - Error saving lidar data: " << e.what();
     }
 }
 
 void Sensor::save_camera_data(const std::vector<uint8_t>& img_bytes, double timestamp, const std::string& camera_name) {
     try {
         if (img_bytes.size() != 160 * 120) {
-            // m_logger.LogVerbose() << "Sensor::save_camera_data - Warning: received image size does not match expected size";
+            m_logger.LogVerbose() << "Sensor::save_camera_data - Warning: received image size does not match expected size";
             m_running = false;
         }
         cv::Mat img(120, 160, CV_8UC1, const_cast<uint8_t*>(img_bytes.data()));
         cv::imwrite(data_path + "/" + camera_name + "_" + std::to_string(timestamp) + ".png", img);
-        // m_logger.LogInfo() << "Sensor::save_camera_data - Camera data (" << camera_name.c_str() << ") saved";
+        m_logger.LogInfo() << "Sensor::save_camera_data - Camera data (" << camera_name.c_str() << ") saved";
     } catch (const std::exception& e) {
-        // m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
+        m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
     }
 }
  

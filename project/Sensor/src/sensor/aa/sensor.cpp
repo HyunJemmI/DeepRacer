@@ -104,7 +104,7 @@ void Sensor::TaskGenerateREventValue()
         m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
     }else{ // Simulation에서 센서 데이터 받아온다.
         m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Camera access failed";
-        m_logger.LogInfo() << "Sensor - RUNNING ON SIMULATION"
+        m_logger.LogInfo() << "Sensor - RUNNING ON SIMULATION";
         m_simulation = true;
 
         // udp 통신 소켓 설정
@@ -228,7 +228,7 @@ void Sensor::save_camera_data(const std::vector<uint8_t>& img_bytes, double time
         }
         cv::Mat img(120, 160, CV_8UC1, const_cast<uint8_t*>(img_bytes.data()));
         cv::imwrite(data_path + "/" + camera_name + "_" + std::to_string(timestamp) + ".png", img);
-        m_logger.LogInfo() << "Camera data (" << camera_name << ") saved";
+        m_logger.LogInfo() << "Camera data (" << camera_name.c_str() << ") saved";
     } catch (const std::exception& e) {
         m_logger.LogVerbose() << "Error saving camera data: " << e.what();
     }

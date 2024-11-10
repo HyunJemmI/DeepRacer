@@ -148,18 +148,18 @@ void Sensor::TaskGenerateREventValue()
                     std::memcpy(&timestamp, buffer, sizeof(double));  // Copy timestamp
                     m_logger.LogInfo() << "Timestamp: " << timestamp;
 
-                    std::vector<uint8_t> left_image(buffer + 8, buffer + 19208);  // Extract left image data
-                    std::vector<uint8_t> right_image(buffer + 19208, buffer + 38408);  // Extract right image data
+                    bufferL.assign(buffer + 8, buffer + 19208);  // Extract left image data
+                    bufferR.assign(buffer + 19208, buffer + 38408);  // Extract right image data
                     std::vector<float> lidar_data(8);  // Extract lidar data
                     std::memcpy(lidar_data.data(), buffer + 38408, 8 * sizeof(float));
 
-                    m_logger.LogInfo() << "Left image size: " << left_image.size();
-                    m_logger.LogInfo() << "Right image size: " << right_image.size();
+                    m_logger.LogInfo() << "Left image size: " << bufferL.size();
+                    m_logger.LogInfo() << "Right image size: " << bufferR.size();
                     m_logger.LogInfo() << "Lidar data size: " << lidar_data.size();
 
                     auto current_time = std::chrono::system_clock::now();
                     if (current_time - last_save_time >= save_interval) {
-                        save_data(timestamp, left_image, right_image, lidar_data);
+                        save_data(timestamp, bufferL, bufferR, lidar_data);
                         last_save_time = current_time;
                     }
                 } catch (const std::exception& e) {
@@ -185,15 +185,13 @@ void Sensor::TaskGenerateREventValue()
             if (cv::waitKey(10) == 27){
                 m_running = false;
             }
-
-            deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferR;
-            // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
-            m_RawData->WriteDataREvent(settingSampleValue);
-
-            m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
-
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
         }
+        deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferR;
+        // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+        m_RawData->WriteDataREvent(settingSampleValue);
+
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
     }
     if (!m_simulation){
         capR.release();

@@ -31,7 +31,7 @@ Sensor::Sensor()
     , sock(socket(AF_INET, SOCK_DGRAM, 0)) // udp 통신 소켓
     , data_path("/home/ubuntu/test_socket_AA_data")
     , last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
-    , save_interval(std::chrono::seconds(3)) // path로 데이터 저장 주기
+    , save_interval(std::chrono::seconds(5)) // path로 데이터 저장 주기
 {
 }
  
@@ -133,7 +133,7 @@ void Sensor::TaskGenerateREventValue()
     std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
     std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
 
-    char buffer[65536];
+    char buffer[65536]; // udp 통신 데이터 받을 버퍼
     sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
 
@@ -142,27 +142,21 @@ void Sensor::TaskGenerateREventValue()
         if(m_simulation){
             ssize_t len = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr*)&addr, &addr_len);
             if (len > 0) {
-                // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Received data: " << len << " bytes";
                 try {
                     double timestamp;
                     std::memcpy(&timestamp, buffer, sizeof(double));  // Copy timestamp
-                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Timestamp: " << timestamp;
 
                     bufferL.assign(buffer + 8, buffer + 19208);  // Extract left image data
                     bufferR.assign(buffer + 19208, buffer + 38408);  // Extract right image data
                     std::vector<float> lidar_data(8);  // Extract lidar data
                     std::memcpy(lidar_data.data(), buffer + 38408, 8 * sizeof(float));
 
-                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Left image size: " << bufferL.size();
-                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Right image size: " << bufferR.size();
-                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Lidar data size: " << lidar_data.size();
-
-                    // Sensor::data_path에 데이터 저장
-                    auto current_time = std::chrono::system_clock::now();
-                    if (current_time - last_save_time >= save_interval) {
-                        save_data(timestamp, bufferL, bufferR, lidar_data);
-                        last_save_time = current_time;
-                    }
+                    // // Sensor::data_path에 데이터 저장
+                    // auto current_time = std::chrono::system_clock::now();
+                    // if (current_time - last_save_time >= save_interval) {
+                    //     save_data(timestamp, bufferL, bufferR, lidar_data);
+                    //     last_save_time = current_time;
+                    // }
                 } catch (const std::exception& e) {
                     m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Error unpacking data: " << e.what();
                 }
@@ -199,8 +193,7 @@ void Sensor::TaskGenerateREventValue()
         // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_RawData->WriteDataREvent(settingSampleValue);
 
-        // m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
-        // m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
     }
     if (!m_simulation){
         capR.release();

@@ -105,8 +105,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     std::vector<uint8_t> bufferR(bufferCombined.begin(), bufferCombined.begin() + 19200);
     std::vector<uint8_t> bufferL(bufferCombined.begin() + 19200, bufferCombined.end());
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferR.size() = " << bufferR.size();
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferL.size() = " << bufferL.size();
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << bufferR.size() << ", L = " << bufferL.size();
 
     // // Image 저장
     // std::string data_path = "/home/ubuntu/test_socket_AA_data";
@@ -128,7 +127,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 
     // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
     m_ControlData->WriteDataCEvent(sample);
-    m_logger.LogInfo() << "Calc::OnReceiveREvent(" << sample[10000] << ")";
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - data size = " << bufferCombined.size();
 }
  
 } /// namespace aa

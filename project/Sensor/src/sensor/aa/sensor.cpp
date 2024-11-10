@@ -153,16 +153,16 @@ void Sensor::TaskGenerateREventValue()
                     std::vector<float> lidar_data(8);  // Extract lidar data
                     std::memcpy(lidar_data.data(), buffer + 38408, 8 * sizeof(float));
 
-                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Left image size: " << bufferL.size();
-                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Right image size: " << bufferR.size();
-                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Lidar data size: " << lidar_data.size();
+                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Left image size: " << bufferL.size();
+                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Right image size: " << bufferR.size();
+                    // m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Lidar data size: " << lidar_data.size();
 
-                    // Sensor::data_path에 데이터 저장
-                    auto current_time = std::chrono::system_clock::now();
-                    if (current_time - last_save_time >= save_interval) {
-                        save_data(timestamp, bufferL, bufferR, lidar_data);
-                        last_save_time = current_time;
-                    }
+                    // // Sensor::data_path에 데이터 저장
+                    // auto current_time = std::chrono::system_clock::now();
+                    // if (current_time - last_save_time >= save_interval) {
+                    //     save_data(timestamp, bufferL, bufferR, lidar_data);
+                    //     last_save_time = current_time;
+                    // }
                 } catch (const std::exception& e) {
                     m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Error unpacking data: " << e.what();
                 }

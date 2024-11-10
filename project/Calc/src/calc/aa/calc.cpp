@@ -73,6 +73,8 @@ void Calc::Run()
 {
     m_logger.LogVerbose() << "Calc::Run";
     
+    m_running = true;
+
     m_workers.Async([this] { TaskReceiveREventCyclic(); });
     m_workers.Async([this] { m_ControlData->SendEventCEventCyclic(); });
     m_workers.Async([this] { m_RawData->ReceiveFieldRFieldCyclic(); });
@@ -91,7 +93,19 @@ void Calc::TaskReceiveREventCyclic()
 
 void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType& sample)
 {
-    std::vector<uint8_t> vec = sample;
+    std::vector<uint8_t> bufferCombined = sample;
+    std::vector<uint8_t> bufferR(bufferCombined.begin(), bufferCombined.begin() + 38400);
+    std::vector<uint8_t> bufferL(bufferCombined.begin() + 38400, bufferCombined.end());
+
+    cv::Mat imageRight(120, 160, CV_8U, bufferR.data());
+    cv::Mat imageLeft(120, 160, CV_8U, bufferL.data());
+
+    cv::imshow("imageRight", imageRight);
+    cv::imshow("imageLeft", imageLeft);
+    // esc 누르면 끄기
+    if (cv::waitKey(10) == 27){
+        m_running = false;
+    }
 
     // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
     m_ControlData->WriteDataCEvent(sample);

@@ -105,8 +105,8 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     std::vector<uint8_t> bufferR(bufferCombined.begin(), bufferCombined.begin() + 19200);
     std::vector<uint8_t> bufferL(bufferCombined.begin() + 19200, bufferCombined.end());
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferR.size() = " << bufferR.size();
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferL.size() = " << bufferL.size();
+    // m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferR.size() = " << bufferR.size();
+    // m_logger.LogInfo() << "Calc::OnReceiveREvent - bufferL.size() = " << bufferL.size();
 
     std::string data_path = "/home/ubuntu/test_socket_AA_data";
 

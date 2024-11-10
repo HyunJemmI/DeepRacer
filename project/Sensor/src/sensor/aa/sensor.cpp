@@ -24,10 +24,10 @@ namespace aa
 Sensor::Sensor()
     : m_logger(ara::log::CreateLogger("SENS", "SWC", ara::log::LogLevel::kVerbose))
     , m_workers(3)
-    , m_running(false)    
+    , m_running(false)
     , m_simulation(false)
     , udp_ip("172.31.41.14") // IP on the receiving side of the data
-    , udp_port(65535) // Port Number
+    , udp_port(65534) // Port Number
     , sock(socket(AF_INET, SOCK_DGRAM, 0)) // udp 통신 소켓
     , data_path("/home/pyo/Desktop/AWS/socket/data")
     , last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
@@ -142,7 +142,7 @@ void Sensor::TaskGenerateREventValue()
         if(m_simulation){
             ssize_t len = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr*)&addr, &addr_len);
             if (len > 0) {
-                std::cout << "Received data: " << len << " bytes" << std::endl;
+                m_logger.LogInfo() << "Received data: " << len << " bytes";
                 try {
                     double timestamp;
                     std::memcpy(&timestamp, buffer, sizeof(double));  // Copy timestamp

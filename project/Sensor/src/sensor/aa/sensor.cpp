@@ -31,7 +31,7 @@ Sensor::Sensor()
     , sock(socket(AF_INET, SOCK_DGRAM, 0)) // udp 통신 소켓
     , data_path("/home/ubuntu/test_socket_AA_data")
     , last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
-    , save_interval(std::chrono::seconds(5)) // path로 데이터 저장 주기
+    , save_interval(std::chrono::seconds(3)) // path로 데이터 저장 주기
 {
 }
  
@@ -199,8 +199,8 @@ void Sensor::TaskGenerateREventValue()
         // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_RawData->WriteDataREvent(settingSampleValue);
 
-        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
-        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
+        // m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
+        // m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
     }
     if (!m_simulation){
         capR.release();

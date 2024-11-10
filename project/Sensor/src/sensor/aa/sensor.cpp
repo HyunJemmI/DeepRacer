@@ -110,7 +110,7 @@ void Sensor::TaskGenerateREventValue()
         // udp 통신 소켓 설정
         int opt = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-            m_logger.LogVerbose() << "setsockopt(SO_REUSEADDR) failed";
+            m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - setsockopt(SO_REUSEADDR) failed";
             m_running = false;
         }
         
@@ -121,7 +121,7 @@ void Sensor::TaskGenerateREventValue()
         addr.sin_addr.s_addr = inet_addr(udp_ip.c_str());
 
         if (bind(sock, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-            m_logger.LogVerbose() << "bind failed";
+            m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - bind failed";
             m_running = false;
         }
     }
@@ -132,6 +132,7 @@ void Sensor::TaskGenerateREventValue()
     cv::Mat frameL_grayscaled; // GrayScaled 처리된 프레임2
     std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
     std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
+    std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
 
     char buffer[65536];
     sockaddr_in addr;
@@ -142,28 +143,29 @@ void Sensor::TaskGenerateREventValue()
         if(m_simulation){
             ssize_t len = recvfrom(sock, buffer, sizeof(buffer), 0, (struct sockaddr*)&addr, &addr_len);
             if (len > 0) {
-                m_logger.LogInfo() << "Received data: " << len << " bytes";
+                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Received data: " << len << " bytes";
                 try {
                     double timestamp;
                     std::memcpy(&timestamp, buffer, sizeof(double));  // Copy timestamp
-                    m_logger.LogInfo() << "Timestamp: " << timestamp;
+                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Timestamp: " << timestamp;
 
                     bufferL.assign(buffer + 8, buffer + 19208);  // Extract left image data
                     bufferR.assign(buffer + 19208, buffer + 38408);  // Extract right image data
                     std::vector<float> lidar_data(8);  // Extract lidar data
                     std::memcpy(lidar_data.data(), buffer + 38408, 8 * sizeof(float));
 
-                    m_logger.LogInfo() << "Left image size: " << bufferL.size();
-                    m_logger.LogInfo() << "Right image size: " << bufferR.size();
-                    m_logger.LogInfo() << "Lidar data size: " << lidar_data.size();
+                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Left image size: " << bufferL.size();
+                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Right image size: " << bufferR.size();
+                    m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Lidar data size: " << lidar_data.size();
 
+                    // Sensor::data_path에 데이터 저장
                     auto current_time = std::chrono::system_clock::now();
                     if (current_time - last_save_time >= save_interval) {
                         save_data(timestamp, bufferL, bufferR, lidar_data);
                         last_save_time = current_time;
                     }
                 } catch (const std::exception& e) {
-                    m_logger.LogVerbose() << "Error unpacking data: " << e.what();
+                    m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Error unpacking data: " << e.what();
                 }
             }
         }else{
@@ -187,11 +189,17 @@ void Sensor::TaskGenerateREventValue()
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
         }
-        deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferR;
+        bufferCombined.reserve(bufferR.size() + bufferL.size());
+        bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
+        bufferCombined.insert(bufferCombined.end(), bufferL.begin(), bufferL.end());
+
+
+        deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferCombined;
         // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_RawData->WriteDataREvent(settingSampleValue);
 
         m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent(" << settingSampleValue[10000] << ")";
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
     }
     if (!m_simulation){
         capR.release();
@@ -212,23 +220,23 @@ void Sensor::save_lidar_data(const std::vector<float>& lidar_data, double timest
             file << value << "\n";
         }
         file.close();
-        m_logger.LogInfo() << "Lidar data saved";
+        m_logger.LogInfo() << "Sensor::save_lidar_data - Lidar data saved";
     } catch (const std::exception& e) {
-        m_logger.LogVerbose() << "Error saving lidar data: " << e.what();
+        m_logger.LogVerbose() << "Sensor::save_lidar_data - Error saving lidar data: " << e.what();
     }
 }
 
 void Sensor::save_camera_data(const std::vector<uint8_t>& img_bytes, double timestamp, const std::string& camera_name) {
     try {
         if (img_bytes.size() != 160 * 120) {
-            m_logger.LogVerbose() << "Warning: received image size does not match expected size";
+            m_logger.LogVerbose() << "Sensor::save_camera_data - Warning: received image size does not match expected size";
             m_running = false;
         }
         cv::Mat img(120, 160, CV_8UC1, const_cast<uint8_t*>(img_bytes.data()));
         cv::imwrite(data_path + "/" + camera_name + "_" + std::to_string(timestamp) + ".png", img);
-        m_logger.LogInfo() << "Camera data (" << camera_name.c_str() << ") saved";
+        m_logger.LogInfo() << "Sensor::save_camera_data - Camera data (" << camera_name.c_str() << ") saved";
     } catch (const std::exception& e) {
-        m_logger.LogVerbose() << "Error saving camera data: " << e.what();
+        m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
     }
 }
  

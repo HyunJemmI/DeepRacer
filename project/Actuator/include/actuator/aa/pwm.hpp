@@ -8,7 +8,8 @@
 #include <unistd.h>
 #include <string>
 
-namespace PWM {
+namespace PWM
+{
     class Servo
     {
     public:

@@ -7,8 +7,9 @@
 #include <unistd.h>
 #include "actuator/aa/json/json.h"
 
-namespace PWM {
-        
+namespace PWM
+{
+
     /// Check's if the desired file exist
     /// @returns True if file exist, false otherwise
     /// @param filePath Full path to desired file for which to validate existence

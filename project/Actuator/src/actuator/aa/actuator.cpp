@@ -15,30 +15,21 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "actuator/aa/actuator.h"
-#include "actuator/aa/bios_version.hpp"
 #include "ara/log/logger.h"
 #include <fstream>
 #include <string>
-#include <chrono>
-#include <thread>
 
 namespace actuator
 {
     namespace aa
     {
-        namespace constants
-        {
-            constexpr std::chrono::nanoseconds SERVO_PERIOD{20'000'000}; // 20ms in nanoseconds
-        } // namespace constants
-
         Actuator::Actuator()
-            : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose)), m_workers(1), // m_workers.Async에 등록가능한 함수 갯수
-              m_throttle(std::make_unique<PWM::Servo>(0)),
-              m_steering(std::make_unique<PWM::Servo>(1)),
+            : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose)),
+              m_workers(1), // m_workers.Async에 등록가능한 함수 갯수
+              servoMgr(std::make_unique<PWM::ServoMgr>()),
+              ledMgr(std::make_unique<PWM::LedMrg>()),
               m_running(false)
         {
-            m_throttle->setPeriod(constants::SERVO_PERIOD.count());
-            m_steering->setPeriod(constants::SERVO_PERIOD.count());
         }
 
         Actuator::~Actuator()
@@ -55,6 +46,11 @@ namespace actuator
 
             // ControlData RPort 객체의 생성
             m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
+
+            // Test Code for Servo Calibration Data
+            testServoCalibration();
+            // Test Code for Motor Calibration Data
+            testMotorCalibration();
 
             return init;
         }
@@ -80,6 +76,8 @@ namespace actuator
 
             // ControlData RPort 에 대한 Terminate() 함수를 호출한다.
             m_ControlData->Terminate();
+
+            servoMgr->servoSubscriber(0, 0);
         }
 
         // Actuator Software Component의 수행 함수
@@ -89,11 +87,13 @@ namespace actuator
 
             m_running = true;
 
-            while(m_running) {
-                testFunction();
+            testFunction();
 
-                std::this_thread::sleep_for(std::chrono::milliseconds(100)); //100ms
-            }
+            // // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
+            // m_workers.Async([this] { TaskReceiveCEventCyclic(); });
+
+            // // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
+            // m_workers.Wait();
         }
 
         // ControlData CEvent의 Cyclic 수신처리에 대한 수행
@@ -109,57 +109,83 @@ namespace actuator
         {
             m_logger.LogInfo() << "Actuator::testFunction";
 
-            // // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
-            // // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
-            // float throttle = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
-            // float steering = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
-
-            float throttle = 1.0f;
-            float steering = 0.5f;
+            float cur_motor = 0.5f; // throttle
+            float cur_servo = 0.5f; // steering
 
             // 모터 제어 로직
-            SetMotorControl(throttle, steering);
+            while (m_running)
+            {
+                servoMgr->servoSubscriber(cur_motor, cur_servo);
 
-            // 서보 모터가 동작할 시간을 주기 위해 잠시 대기합니다.
-            std::this_thread::sleep_for(constants::SERVO_PERIOD);
-
-            // 로그를 통해 동작 상태를 확인합니다.
-            m_logger.LogInfo() << "Actuator set - Throttle: " << throttle << ", Steering: " << steering;
+                // 로그를 통해 동작 상태를 확인합니다.
+                m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;
+            }
+            servoMgr->servoSubscriber(0, 0);
         }
 
         // ControlData CEvent를 받았을시의 처리 함수
         void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
         {
-            m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample << " ! ";
+            m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
 
             // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
             // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
-            float throttle = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
-            float steering = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+            float cur_motor = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
+            float cur_servo = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
 
             // 모터 제어 로직
-            SetMotorControl(throttle, steering);
-
-            // 서보 모터가 동작할 시간을 주기 위해 잠시 대기합니다.
-            std::this_thread::sleep_for(constants::SERVO_PERIOD);
+            servoMgr->servoSubscriber(cur_motor, cur_servo);
 
             // 로그를 통해 동작 상태를 확인합니다.
-            m_logger.LogInfo() << "Actuator set - Throttle: " << throttle << ", Steering: " << steering;
+            m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;
         }
 
-        void Actuator::SetMotorControl(float throttle, float steering)
+        void Actuator::testServoCalibration()
         {
-            // throttle과 steering 값을 -1.0에서 1.0 사이로 제한
-            throttle = std::clamp(throttle, -1.0f, 1.0f);
-            steering = std::clamp(steering, -1.0f, 1.0f);
+            int cal_type = 0;
+            int servo_min, servo_mid, servo_max, servo_polarity;
 
-            // PWM 듀티 사이클 계산 (0에서 SERVO_PERIOD 사이의 값으로 변환)
-            int throttle_duty = static_cast<int>((throttle + 1.0f) / 2.0f * constants::SERVO_PERIOD.count());
-            int steering_duty = static_cast<int>((steering + 1.0f) / 2.0f * constants::SERVO_PERIOD.count());
+            // Print current calibration value
+            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            m_logger.LogInfo() << "Current Servo calibration value: min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
 
-            // PWM 신호 설정
-            m_throttle->setDuty(throttle_duty);
-            m_steering->setDuty(steering_duty);
+            // Set New calibration value
+            servoMgr->setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
+
+            // Print updated calibration value
+            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            m_logger.LogInfo() << "New Servo calibration value(-10): min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
+
+            // Recover calibration value
+            servoMgr->setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
+
+            // Print recovered calibration value
+            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            m_logger.LogInfo() << "Recovered Current Servo calibration value: min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
+        }
+
+        void Actuator::testMotorCalibration()
+        {
+            int cal_type = 1;
+            int motor_min, motor_mid, motor_max, motor_polarity;
+
+            // Print current calibration value
+            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            m_logger.LogInfo() << "Current Motor calibration value: min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
+
+            // Set New calibration value
+            servoMgr->setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
+
+            // Print updated calibration value
+            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            m_logger.LogInfo() << "New Motor calibration value(-10): min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
+
+            // Recover calibration value
+            servoMgr->setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
+
+            // Print recovered calibration value
+            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            m_logger.LogInfo() << "Recovered Current Motor calibration value: min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
         }
     } /// namespace aa
 } /// namespace actuator

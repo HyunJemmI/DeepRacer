@@ -31,13 +31,16 @@ ControlData::ControlData()
 ControlData::~ControlData()
 {
 }
- 
+
+// 해당 Port는 RPort -> 서비스에 대한 FindService 호출 필요 
 void ControlData::Start()
 {
     m_logger.LogVerbose() << "ControlData::Start";
     
     // regist callback
     ara::core::InstanceSpecifier specifier{"SimActuator/AA/ControlData"};
+
+    // find service
     auto handler = [this](ara::com::ServiceHandleContainer<deepracer::service::controldata::proxy::SvControlDataProxy::HandleType> handles,
                           ara::com::FindServiceHandle findHandle) {
         this->Find(handles, findHandle);
@@ -124,8 +127,10 @@ void ControlData::SubscribeCEvent()
     {
         // regist receiver handler
         // if you want to enable it, please uncomment below code
-        // 
-        // RegistReceiverCEvent();
+        //
+        // CEvent에 대한 Receiver Handler 등록 함수
+        // 만약 CEvent를 받을떄마다 핸들러를 통한 즉각적인 처리를 원한다면 아래 함수를 uncomment하여 핸들러를 등록하면 된다.
+        RegistReceiverCEvent();
         
         // request subscribe
         auto subscribe = m_interface->CEvent.Subscribe(1);
@@ -140,7 +145,7 @@ void ControlData::SubscribeCEvent()
     }
 }
  
-void ControlData::StopSubscribeCEvent()
+void ControlData::StopSubscribeCEvent()     
 {
     if (m_found)
     {
@@ -216,14 +221,29 @@ void ControlData::ReceiveEventCEventCyclic()
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
  
 void ControlData::ReadDataCEvent(ara::com::SamplePtr<deepracer::service::controldata::proxy::events::CEvent::SampleType const> samplePtr)
 {
     auto data = *samplePtr.Get();
-    // put your logic
+    // CEvent 핸들러가 등록되어 있을시 해당 핸들러는 값과 함께 호출한다.
+    if (m_receiveEventCEventHandler != nullptr)
+    {
+        m_receiveEventCEventHandler(data);
+        // 추가로 어떻게 data 처리할 것인지
+        // calc(inference - model.pb)의 output이 특정되지 않았으므로 보류
+        // n x 120 x 160 x 2로 되어있기는 함
+        // output을 어떻게 가공해 사용할 것인지 기술하는 부분
+    }
+
+}
+
+void ControlData::SetReceiveEventCEventHandler(
+    std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> handler)
+{
+    m_receiveEventCEventHandler = handler;
 }
  
 } /// namespace port

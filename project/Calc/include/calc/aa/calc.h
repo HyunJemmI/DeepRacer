@@ -48,11 +48,16 @@ public:
 private:
     /// @brief Run software component
     void Run();
-    
+
+    /// @brief Task Receive REvent Cyclic
     void TaskReceiveREventCyclic();
+
+    /// @brief Task Receive Notify RField Cyclic
+    void TaskReceiveNotifyRFieldCyclic();
 
     void OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType& sample);
 
+    
  
 private:
     bool m_running;
@@ -68,6 +73,9 @@ private:
     
     /// @brief Instance of Port {Calc.RawData}
     std::shared_ptr<calc::aa::port::RawData> m_RawData;
+
+     /// @brief Received REvent Data from Sensor AA
+    deepracer::service::rawdata::proxy::events::REvent::SampleType m_sensorData;
 };
  
 } /// namespace aa

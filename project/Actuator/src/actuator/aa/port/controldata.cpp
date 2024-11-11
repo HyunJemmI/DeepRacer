@@ -124,10 +124,11 @@ void ControlData::SubscribeCEvent()
     {
         // regist receiver handler
         // if you want to enable it, please uncomment below code
-        // 
-        // RegistReceiverCEvent();
-        
+        //         
         // request subscribe
+
+        // RegistReceiverCEvent();
+
         auto subscribe = m_interface->CEvent.Subscribe(1);
         if (subscribe.HasValue())
         {
@@ -224,6 +225,20 @@ void ControlData::ReadDataCEvent(ara::com::SamplePtr<deepracer::service::control
 {
     auto data = *samplePtr.Get();
     // put your logic
+    if (m_receiveEventCEventHandler != nullptr)
+    {
+        m_receiveEventCEventHandler(data);
+        // 추가로 어떻게 data 처리할 것인지
+        // calc(inference - model.pb)의 output이 특정되지 않았으므로 보류
+        // n x 120 x 160 x 2로 되어있기는 함
+        // output을 어떻게 가공해 사용할 것인지 기술하는 부분
+    }
+}
+
+void ControlData::SetReceiveEventCEventHandler(
+    std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> handler)
+{
+    m_receiveEventCEventHandler = handler;
 }
  
 } /// namespace port

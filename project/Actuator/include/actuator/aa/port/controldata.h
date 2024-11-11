@@ -61,6 +61,8 @@ public:
     /// @brief Read event data, CEvent
     void ReadDataCEvent(ara::com::SamplePtr<deepracer::service::controldata::proxy::events::CEvent::SampleType const> samplePtr);
     
+    /// @brief Set receive event data handler, CEvent
+    void SetReceiveEventCEventHandler(std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> handler);
     
     
 private:
@@ -90,6 +92,9 @@ private:
     
     /// @brief Find service handle
     std::shared_ptr<ara::com::FindServiceHandle> m_findHandle;
+
+    /// @brief Receive event handler
+    std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> m_receiveEventCEventHandler;
 };
  
 } /// namespace port

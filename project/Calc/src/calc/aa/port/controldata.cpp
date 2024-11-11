@@ -44,7 +44,8 @@ namespace port
 ControlData::ControlData()
     : m_logger(ara::log::CreateLogger("CALC", "PORT", ara::log::LogLevel::kVerbose))
     , m_running{false}
-    , m_CEventData{0U, 0U, 0U}
+    // , m_CEventData{0U, 0U, 0U}
+    , m_CEventData{0U} // Control data Pport interface 생성자
 {
 }
  
@@ -89,7 +90,7 @@ void ControlData::Terminate()
 void ControlData::WriteDataCEvent(const deepracer::service::controldata::skeleton::events::CEvent::SampleType& data)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_CEventData = data;
+    m_CEventData = data; // data로 m_CEventData 업데이트
 }
  
 void ControlData::SendEventCEventCyclic()
@@ -111,7 +112,7 @@ void ControlData::SendEventCEventCyclic()
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
- 
+
 void ControlData::SendEventCEventTriggered()
 {
     std::lock_guard<std::mutex> lock(m_mutex);
@@ -129,7 +130,7 @@ void ControlData::SendEventCEventTriggered()
 void ControlData::SendEventCEventTriggered(const deepracer::service::controldata::skeleton::events::CEvent::SampleType& data)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    m_CEventData = data;
+    m_CEventData = data; // data로 m_CEventData 업데이트
     auto send = m_interface->CEvent.Send(m_CEventData);
     if (send.HasValue())
     {

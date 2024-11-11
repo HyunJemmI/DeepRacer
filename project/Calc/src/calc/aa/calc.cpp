@@ -123,6 +123,23 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     m_ControlData->WriteDataCEvent(sample);
     m_logger.LogInfo() << "Calc::OnReceiveREvent - data size = " << bufferCombined.size();
 }
- 
+// RawData RField Notify를 받았을시의 처리 함수
+void Calc::OnReceiveNotifyRField(const deepracer::service::rawdata::proxy::fields::RField::FieldType& field)
+{
+    m_logger.LogInfo() << "Calc::OnReceiveNotifyRField:" << field;
+}
+
+// RawData RField Set에 대한 Response를 받았을시의 처리 함수
+void Calc::OnReceiveSetRField(const deepracer::service::rawdata::proxy::fields::RField::FieldType& field)
+{
+    m_logger.LogInfo() << "Calc::OnReceiveSetRField:" << field;
+}
+
+// RawData RField Get에 대한 Response를 받았을시의 처리 함수
+void Calc::OnReceiveGetRField(const deepracer::service::rawdata::proxy::fields::RField::FieldType& field)
+{
+    m_logger.LogInfo() << "Calc::OnReceiveGetRField:" << field;
+}
+
 } /// namespace aa
 } /// namespace calc

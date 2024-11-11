@@ -172,9 +172,9 @@ void Sensor::TaskGenerateREventValue()
             cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
             cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
-            //Flatten
-            cv::imencode(".jpeg", frameR_grayscaled, bufferR);
-            cv::imencode(".jpeg", frameL_grayscaled, bufferL);
+            //19200 고정된 크기로 Flatten(imencode하면 벡터 사이즈 변환 가능...)
+            bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
+            bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
 
             cv::imshow("frameR_grayscaled", frameR_grayscaled);
             cv::imshow("frameL_grayscaled", frameL_grayscaled);

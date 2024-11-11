@@ -31,6 +31,8 @@ target_sources(${PARA_APP_NAME}
                PRIVATE
                actuator/aa/port/controldata.cpp
                actuator/aa/actuator.cpp
+               actuator/aa/bios_version.cpp
+               actuator/aa/led_mgr.cpp
                actuator/aa/pwm.cpp
                actuator/aa/servo_mgr.cpp
                actuator/aa/utility.cpp

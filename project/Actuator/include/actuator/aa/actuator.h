@@ -19,15 +19,14 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "actuator/aa/port/controldata.h"
 #include "para/swc/port_pool.h"
-#include "bios_version.hpp"
-#include "pwm.hpp"
+#include "servo_mgr.hpp"
+#include "led_mgr.hpp"
 #include <memory>
 
 namespace actuator
 {
     namespace aa
     {
-        using PWM::BiosVersion;
 
         class Actuator
         {
@@ -49,6 +48,9 @@ namespace actuator
 
             /// actuator test function
             void testFunction();
+            /// actuator calibration function
+            void testServoCalibration();
+            void testMotorCalibration();
 
         private:
             /// @brief Run software component
@@ -60,10 +62,8 @@ namespace actuator
             /// @brief CEvent Receiver
             void OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample);
 
-            void SetMotorControl(float throttle, float steering);
-
         private:
-            bool m_running; //flag Run()
+            bool m_running; // flag Run()
 
             /// @brief Pool of port
             ::para::swc::PortPool m_workers;
@@ -74,8 +74,8 @@ namespace actuator
             /// @brief Instance of Port {Actuator.ControlData}
             std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
 
-            std::unique_ptr<PWM::Servo> m_throttle;
-            std::unique_ptr<PWM::Servo> m_steering;
+            PWM::ServoMgr servoMgr;
+            PWM::LedMgr ledMgr;
         };
 
     } /// namespace aa

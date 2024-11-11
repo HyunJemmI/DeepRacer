@@ -227,7 +227,7 @@ void RawData::ReadDataREvent(ara::com::SamplePtr<deepracer::service::rawdata::pr
 {
     auto data = *samplePtr.Get();
     // put your logic
-    m_logger.LogInfo() << "RawData::ReadDataREvent::data::" << data[10000];
+    m_logger.LogInfo() << "RawData::ReadDataREvent::data::" << data.size();
 
     // REvent 핸들러가 등록되어 있을시 해당 핸들러는 값과 함께 호출한다.
     if (m_receiveEventREventHandler != nullptr)

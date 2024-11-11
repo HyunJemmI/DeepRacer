@@ -27,87 +27,77 @@
 
 namespace actuator
 {
-namespace aa
-{
-namespace port
-{
+    namespace aa
+    {
+        namespace port
+        {
 
-class ControlData
-{
-public:
-    /// @brief Constructor
-    ControlData();
+            class ControlData
+            {
+            public:
+                /// @brief Constructor
+                ControlData();
 
-    /// @brief Destructor
-    ~ControlData();
+                /// @brief Destructor
+                ~ControlData();
 
-    /// @brief Start port
-    void Start();
+                /// @brief Start port
+                void Start();
 
-    /// @brief Terminate port
-    void Terminate();
+                /// @brief Terminate port
+                void Terminate();
 
-    /// @brief Subscribe event, CEvent
-    void SubscribeCEvent();
+                /// @brief Subscribe event, CEvent
+                void SubscribeCEvent();
 
-    /// @brief Stop event subscription, CEvent
-    void StopSubscribeCEvent();
+                /// @brief Stop event subscription, CEvent
+                void StopSubscribeCEvent();
 
-    /// @brief Event receive handler, CEvent
-    void ReceiveEventCEventTriggered();
+                /// @brief Event receive handler, CEvent
+                void ReceiveEventCEventTriggered();
 
-    /// @brief Event receive handler, CEvent
-    void ReceiveEventCEventCyclic();
+                /// @brief Event receive handler, CEvent
+                void ReceiveEventCEventCyclic();
 
-    /// @brief Read event data, CEvent
-    void ReadDataCEvent(ara::com::SamplePtr<deepracer::service::controldata::proxy::events::CEvent::SampleType const> samplePtr);
+                /// @brief Read event data, CEvent
+                void ReadDataCEvent(ara::com::SamplePtr<deepracer::service::controldata::proxy::events::CEvent::SampleType const> samplePtr);
 
-    /// @brief Set receive event data handler, CEvent
-    void SetReceiveEventCEventHandler(std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> handler);
+                /// @brief Set receive event data handler, CEvent
+                void SetReceiveEventCEventHandler(std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType &)> handler);
 
-    // Motor Start functions
-    void StartMotor();
+            private:
+                /// @brief Callback for find service
+                void Find(ara::com::ServiceHandleContainer<deepracer::service::controldata::proxy::SvControlDataProxy::HandleType> handles,
+                          ara::com::FindServiceHandle findHandle);
 
-    // Motor control functions
-    void SetMotorSpeed(float speed);
+                /// @brief Callback for event receiver, CEvent
+                void RegistReceiverCEvent();
 
-    // Motor Stop functions
-    void StopMotor();
+            private:
+                /// @brief Logger for this port
+                ara::log::Logger &m_logger;
 
-private:
-    /// @brief Callback for find service
-    void Find(ara::com::ServiceHandleContainer<deepracer::service::controldata::proxy::SvControlDataProxy::HandleType> handles,
-              ara::com::FindServiceHandle findHandle);
+                /// @brief Flag of port status
+                bool m_running;
 
-    /// @brief Callback for event receiver, CEvent
-    void RegistReceiverCEvent();
+                /// @brief Flag of find service status
+                bool m_found;
 
+                /// @brief Mutex for this port
+                std::mutex m_mutex;
 
-private:
-    /// @brief Logger for this port
-    ara::log::Logger& m_logger;
+                /// @brief AUTOSAR Port Interface
+                std::shared_ptr<deepracer::service::controldata::proxy::SvControlDataProxy> m_interface;
 
-    /// @brief Flag of port status
-    bool m_running;
+                /// @brief Find service handle
+                std::shared_ptr<ara::com::FindServiceHandle> m_findHandle;
 
-    /// @brief Flag of find service status
-    bool m_found;
+                /// @brief Receive event handler
+                std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType &)> m_receiveEventCEventHandler;
+            };
 
-    /// @brief Mutex for this port
-    std::mutex m_mutex;
-
-    /// @brief AUTOSAR Port Interface
-    std::shared_ptr<deepracer::service::controldata::proxy::SvControlDataProxy> m_interface;
-
-    /// @brief Find service handle
-    std::shared_ptr<ara::com::FindServiceHandle> m_findHandle;
-
-    /// @brief Receive event handler
-    std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType&)> m_receiveEventCEventHandler;
-};
-
-} /// namespace port
-} /// namespace aa
+        } /// namespace port
+    } /// namespace aa
 } /// namespace actuator
 
 #endif /// PARA_AA_GEN_SOFTWARE_COMPONENT_RPORT_ACTUATOR_AA_CONTROLDATA_H

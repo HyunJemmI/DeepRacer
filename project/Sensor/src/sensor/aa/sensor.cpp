@@ -195,7 +195,7 @@ void Sensor::TaskGenerateREventValue()
         // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_RawData->WriteDataREvent(settingSampleValue);
 
-        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size = " << bufferCombined.size();
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = "<< bufferL.size() << ")";
     }
     if (!m_simulation){
         capR.release();

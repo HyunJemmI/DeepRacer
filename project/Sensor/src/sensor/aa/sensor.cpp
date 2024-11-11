@@ -132,6 +132,8 @@ void Sensor::TaskGenerateREventValue()
     cv::Mat frameL_grayscaled; // GrayScaled 처리된 프레임2
     std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
     std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
+    bufferR.reserve(19200);
+    bufferL.reserve(19200);
 
     char buffer[65536]; // udp 통신 데이터 받을 버퍼
     sockaddr_in addr;

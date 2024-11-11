@@ -176,17 +176,12 @@ void Sensor::TaskGenerateREventValue()
             bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
             bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
 
-            cv::Mat imgR(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferR.data()));
-            cv::Mat imgL(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferL.data()));
-
-            cv::imshow("restored imageR",imgR);
-            cv::imshow("restored imageL",imgL);
-            cv::imshow("frameR_grayscaled", frameR_grayscaled);
-            cv::imshow("frameL_grayscaled", frameL_grayscaled);
-            // esc 누르면 끄기
-            if (cv::waitKey(10) == 27){
-                m_running = false;
-            }
+            // cv::imshow("frameR_grayscaled", frameR_grayscaled);
+            // cv::imshow("frameL_grayscaled", frameL_grayscaled);
+            // // esc 누르면 끄기
+            // if (cv::waitKey(10) == 27){
+            //     m_running = false;
+            // }
             std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
         }
         

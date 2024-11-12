@@ -75,9 +75,10 @@ namespace calc
 
             m_running = true;
 
-            // m_workers.Async([this] { TaskReceiveREventCyclic(); });
             m_workers.Async([this]
-                            { m_RawData->ReceiveEventREventCyclic(); });
+                            { TaskReceiveREventCyclic(); });
+            // m_workers.Async([this]
+            //                 { m_RawData->ReceiveEventREventCyclic(); });
             m_workers.Async([this]
                             { m_ControlData->SendEventCEventCyclic(); });
             m_workers.Async([this]

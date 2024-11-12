@@ -190,13 +190,14 @@ namespace sensor
                     bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
                     bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
 
-                    // cv::imshow("frameR_grayscaled", frameR_grayscaled);
-                    // cv::imshow("frameL_grayscaled", frameL_grayscaled);
-                    // // esc 누르면 끄기
-                    // if (cv::waitKey(10) == 27){
-                    //     m_running = false;
-                    // }
-                    std::this_thread::sleep_for(std::chrono::seconds(1)); // fps
+                    cv::imshow("frameR_grayscaled", frameR_grayscaled);
+                    cv::imshow("frameL_grayscaled", frameL_grayscaled);
+                    // esc 누르면 끄기
+                    if (cv::waitKey(10) == 27)
+                    {
+                        m_running = false;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
                 }
 
                 std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터

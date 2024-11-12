@@ -172,7 +172,7 @@ namespace sensor
                             m_logger.LogError() << "RawData::SendEventREventCyclic::Send::" << send.Error().Message();
                         }
                     }
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             }
 
@@ -219,7 +219,7 @@ namespace sensor
                         std::lock_guard<std::mutex> lock(m_mutex);
                         m_interface->NotifyRField();
                     }
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 }
             }
 

@@ -56,9 +56,6 @@ namespace calc
             void Terminate();
 
         private:
-            /// @brief Run software component
-            void Run();
-
             void Run(); // Run software component
             void TaskReceiveREventCyclic();
             void TaskReceiveNotifyRFieldCyclic();

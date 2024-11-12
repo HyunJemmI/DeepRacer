@@ -16,6 +16,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
+#define SERVER_IP "172.31.41.14" // EC2 인스턴스의 public IP
+#define PORT 8080
+#define BUFFER_SIZE 19200
+#define SOCKET_TIMEOUT_SEC 5
+#define MAX_RECONNECT_ATTEMPTS 3
+#define RECONNECT_DELAY_SEC 0.1
+
 namespace calc
 {
     namespace aa

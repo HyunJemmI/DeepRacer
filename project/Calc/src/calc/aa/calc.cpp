@@ -43,7 +43,7 @@ namespace calc
 
         Calc::~Calc()
         {
-            CloseSocket
+            CloseSocket();
         }
 
         // Client -> Server 연결

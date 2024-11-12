@@ -31,6 +31,8 @@ namespace sensor
               data_path("/home/ubuntu/test_socket_AA_data"), last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
               ,
               save_interval(std::chrono::seconds(5)) // path로 데이터 저장 주기
+              ,
+              capR(), capL()
         {
         }
 
@@ -46,49 +48,9 @@ namespace sensor
 
             m_RawData = std::make_shared<sensor::aa::port::RawData>();
 
-            return init;
-        }
-
-        void Sensor::Start()
-        {
-            m_logger.LogVerbose() << "Sensor::Start";
-
-            m_RawData->Start();
-
-            // run software component
-            Run();
-        }
-
-        void Sensor::Terminate()
-        {
-            m_logger.LogVerbose() << "Sensor::Terminate";
-
-            m_running = false;
-
-            m_RawData->Terminate();
-        }
-
-        void Sensor::Run()
-        {
-            m_logger.LogVerbose() << "Sensor::Run";
-
-            m_running = true;
-
-            m_workers.Async([this]
-                            { TaskGenerateREventValue(); });
-            m_workers.Async([this]
-                            { m_RawData->SendEventREventCyclic(); });
-            m_workers.Async([this]
-                            { m_RawData->NotifyFieldRFieldCyclic(); });
-
-            m_workers.Wait();
-        }
-
-        void Sensor::TaskGenerateREventValue()
-        {
-            // Camera 객체 생성
-            cv::VideoCapture capR(0);
-            cv::VideoCapture capL(2);
+            // Camera 접근
+            capR.open(0);
+            capL.open(2);
 
             // 접근 여부 파악
             if (capR.isOpened() && capL.isOpened())
@@ -105,6 +67,10 @@ namespace sensor
                 capL.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
 
                 m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
+
+                m_simulation = false;
+                close(sock);
+                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - close UDP socket";
             }
             else
             { // Simulation에서 센서 데이터 받아온다.
@@ -133,6 +99,56 @@ namespace sensor
                 }
             }
 
+            return init;
+        }
+
+        void Sensor::Start()
+        {
+            m_logger.LogVerbose() << "Sensor::Start";
+
+            m_RawData->Start();
+
+            // run software component
+            Run();
+        }
+
+        void Sensor::Terminate()
+        {
+            m_logger.LogVerbose() << "Sensor::Terminate";
+
+            m_running = false;
+
+            if (!m_simulation)
+            {
+                capR.release();
+                capL.release();
+            }
+            else
+            {
+                close(sock);
+            }
+
+            m_RawData->Terminate();
+        }
+
+        void Sensor::Run()
+        {
+            m_logger.LogVerbose() << "Sensor::Run";
+
+            m_running = true;
+
+            m_workers.Async([this]
+                            { TaskGenerateREventValue(); });
+            m_workers.Async([this]
+                            { m_RawData->SendEventREventCyclic(); });
+            m_workers.Async([this]
+                            { m_RawData->NotifyFieldRFieldCyclic(); });
+
+            m_workers.Wait();
+        }
+
+        void Sensor::TaskGenerateREventValue()
+        {
             cv::Mat frameR;               // 카메라1 이미지 프레임
             cv::Mat frameL;               // 카메라2 이미지 프레임
             cv::Mat frameR_grayscaled;    // GrayScaled 처리된 프레임1
@@ -190,13 +206,14 @@ namespace sensor
                     bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
                     bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
 
-                    // cv::imshow("frameR_grayscaled", frameR_grayscaled);
-                    // cv::imshow("frameL_grayscaled", frameL_grayscaled);
-                    // // esc 누르면 끄기
-                    // if (cv::waitKey(10) == 27){
-                    //     m_running = false;
-                    // }
-                    std::this_thread::sleep_for(std::chrono::seconds(1)); // fps
+                    cv::imshow("frameR_grayscaled", frameR_grayscaled);
+                    cv::imshow("frameL_grayscaled", frameL_grayscaled);
+                    // esc 누르면 끄기
+                    if (cv::waitKey(10) == 27)
+                    {
+                        m_running = false;
+                    }
+                    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
                 }
 
                 std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
@@ -209,11 +226,6 @@ namespace sensor
                 m_RawData->WriteDataREvent(settingSampleValue);
 
                 m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = " << bufferL.size() << ")";
-            }
-            if (!m_simulation)
-            {
-                capR.release();
-                capL.release();
             }
         }
 
@@ -260,6 +272,5 @@ namespace sensor
                 m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
             }
         }
-
     } /// namespace aa
 } /// namespace sensor

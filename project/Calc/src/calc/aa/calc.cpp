@@ -81,155 +81,153 @@ namespace calc
             return true;
         }
 
-    }
-
-    // 시작 함수: 컴포넌트 실행 시작
-    void Calc::Start()
-    {
-        m_logger.LogVerbose() << "Calc::Start";
-
-        m_ControlData->Start();
-        m_RawData->Start();
-
-        Run();
-    }
-
-    // 종료 함수: 리소스 정리 및 스레드 종료
-    void Calc::Terminate()
-    {
-        m_logger.LogVerbose() << "Calc::Terminate";
-
-        m_running = false;
-        m_dataCV.notify_all();
-
-        m_ControlData->Terminate();
-        m_RawData->Terminate();
-
-        CloseSocket();
-
-        m_workers.Wait();
-    }
-
-    // 메인 실행 함수: 작업 스레드 시작
-    void Calc::Run()
-    {
-        m_logger.LogVerbose() << "Calc::Run";
-
-        m_running = true;
-
-        m_workers.Async([this]
-                        { TaskReceiveREventCyclic(); });
-        m_workers.Async([this]
-                        { m_ControlData->SendEventCEventCyclic(); });
-        m_workers.Async([this]
-                        { m_RawData->ReceiveFieldRFieldCyclic(); });
-        m_workers.Async([this]
-                        { SocketCommunication(); });
-
-        m_workers.Wait();
-    }
-
-    // RawData 이벤트 수신 처리 함수
-    void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
-    {
-        std::vector<uint8_t> bufferCombined = sample;
-
-        m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << BUFFER_SIZE << ", L = " << BUFFER_SIZE;
-
+        // 시작 함수: 컴포넌트 실행 시작
+        void Calc::Start()
         {
-            std::lock_guard<std::mutex> lock(m_dataMutex);
-            m_latestRawData = bufferCombined;
-            m_newDataAvailable = true;
+            m_logger.LogVerbose() << "Calc::Start";
+
+            m_ControlData->Start();
+            m_RawData->Start();
+
+            Run();
         }
-        m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
-    }
 
-    // 소켓 통신 처리 함수
-    void Calc::SocketCommunication()
-    {
-        while (m_running)
+        // 종료 함수: 리소스 정리 및 스레드 종료
+        void Calc::Terminate()
         {
-            // inference로의 데이터 전송
-            std::vector<uint8_t> combinedData;
+            m_logger.LogVerbose() << "Calc::Terminate";
+
+            m_running = false;
+            m_dataCV.notify_all();
+
+            m_ControlData->Terminate();
+            m_RawData->Terminate();
+
+            CloseSocket();
+
+            m_workers.Wait();
+        }
+
+        // 메인 실행 함수: 작업 스레드 시작
+        void Calc::Run()
+        {
+            m_logger.LogVerbose() << "Calc::Run";
+
+            m_running = true;
+
+            m_workers.Async([this]
+                            { TaskReceiveREventCyclic(); });
+            m_workers.Async([this]
+                            { m_ControlData->SendEventCEventCyclic(); });
+            m_workers.Async([this]
+                            { m_RawData->ReceiveFieldRFieldCyclic(); });
+            m_workers.Async([this]
+                            { SocketCommunication(); });
+
+            m_workers.Wait();
+        }
+
+        // RawData 이벤트 수신 처리 함수
+        void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
+        {
+            std::vector<uint8_t> bufferCombined = sample;
+
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << BUFFER_SIZE << ", L = " << BUFFER_SIZE;
+
             {
-                std::unique_lock<std::mutex> lock(m_dataMutex);
-                m_dataCV.wait(lock, [this]
-                              { return m_newDataAvailable || !m_running; });
-
-                if (!m_running)
-                    break;
-
-                combinedData = m_latestRawData;
-                m_newDataAvailable = false;
+                std::lock_guard<std::mutex> lock(m_dataMutex);
+                m_latestRawData = bufferCombined;
+                m_newDataAvailable = true;
             }
+            m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
+        }
 
-            // 데이터를 두 부분으로 나누어 전송(19200, 19200)
-            std::vector<uint8_t> bufferL(combinedData.begin(), combinedData.begin() + BUFFER_SIZE);
-            std::vector<uint8_t> bufferR(combinedData.begin() + BUFFER_SIZE, combinedData.end());
-
-            // bufferL과 bufferR을 하나의 벡터로 결합
-            std::vector<uint8_t> combinedBuffer;
-            combinedBuffer.insert(combinedBuffer.end(), bufferL.begin(), bufferL.end());
-            combinedBuffer.insert(combinedBuffer.end(), bufferR.begin(), bufferR.end());
-
-            // 결합된 데이터 전송
-            ssize_t sent_bytes = send(m_socket_fd, combinedBuffer.data(), combinedBuffer.size(), 0);
-
-            if (sent_bytes != combinedBuffer.size())
+        // 소켓 통신 처리 함수
+        void Calc::SocketCommunication()
+        {
+            while (m_running)
             {
-                m_logger.LogError() << "Send failed: " << strerror(errno);
-                continue;
-
-                float received_floats[2];
-                ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
-
-                if (bytes_received == sizeof(float) * 2)
+                // inference로의 데이터 전송
+                std::vector<uint8_t> combinedData;
                 {
-                    m_logger.LogInfo() << "Received float 1: " << received_floats[0];
-                    m_logger.LogInfo() << "Received float 2: " << received_floats[1];
+                    std::unique_lock<std::mutex> lock(m_dataMutex);
+                    m_dataCV.wait(lock, [this]
+                                  { return m_newDataAvailable || !m_running; });
 
-                    ProcessReceivedFloats(received_floats[0], received_floats[1]);
+                    if (!m_running)
+                        break;
+
+                    combinedData = m_latestRawData;
+                    m_newDataAvailable = false;
                 }
-                else if (bytes_received == 0)
+
+                // 데이터를 두 부분으로 나누어 전송(19200, 19200)
+                std::vector<uint8_t> bufferL(combinedData.begin(), combinedData.begin() + BUFFER_SIZE);
+                std::vector<uint8_t> bufferR(combinedData.begin() + BUFFER_SIZE, combinedData.end());
+
+                // bufferL과 bufferR을 하나의 벡터로 결합
+                std::vector<uint8_t> combinedBuffer;
+                combinedBuffer.insert(combinedBuffer.end(), bufferL.begin(), bufferL.end());
+                combinedBuffer.insert(combinedBuffer.end(), bufferR.begin(), bufferR.end());
+
+                // 결합된 데이터 전송
+                ssize_t sent_bytes = send(m_socket_fd, combinedBuffer.data(), combinedBuffer.size(), 0);
+
+                if (sent_bytes != combinedBuffer.size())
                 {
-                    m_logger.LogError() << "Connection closed by server";
+                    m_logger.LogError() << "Send failed: " << strerror(errno);
                     continue;
-                }
-                else
-                {
-                    m_logger.LogError() << "Receive failed: " << strerror(errno);
-                    continue;
+
+                    float received_floats[2];
+                    ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
+
+                    if (bytes_received == sizeof(float) * 2)
+                    {
+                        m_logger.LogInfo() << "Received float 1: " << received_floats[0];
+                        m_logger.LogInfo() << "Received float 2: " << received_floats[1];
+
+                        ProcessReceivedFloats(received_floats[0], received_floats[1]);
+                    }
+                    else if (bytes_received == 0)
+                    {
+                        m_logger.LogError() << "Connection closed by server";
+                        continue;
+                    }
+                    else
+                    {
+                        m_logger.LogError() << "Receive failed: " << strerror(errno);
+                        continue;
+                    }
                 }
             }
-        }
 
-        // 수신된 float 값 처리 함수
-        void Calc::ProcessReceivedFloats(float value1, float value2)
-        {
-            deepracer::service::controldata::skeleton::events::CEvent::SampleType sample;
-            sample.push_back(value1);
-            sample.push_back(value2);
-
-            m_ControlData->WriteDataCEvent(sample);
-
-            m_logger.LogInfo() << "send values via ControlData";
-        }
-
-        // RawData 이벤트 수신 작업 함수
-        void Calc::TaskReceiveREventCyclic()
-        {
-            m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
-                                                    { OnReceiveREvent(sample); });
-            m_RawData->ReceiveEventREventCyclic();
-        }
-
-        void Calc::CloseSocket()
-        {
-            if (m_socket_fd != -1)
+            // 수신된 float 값 처리 함수
+            void Calc::ProcessReceivedFloats(float value1, float value2)
             {
-                close(m_socket_fd);
-                m_socket_fd = -1;
+                deepracer::service::controldata::skeleton::events::CEvent::SampleType sample;
+                sample.push_back(value1);
+                sample.push_back(value2);
+
+                m_ControlData->WriteDataCEvent(sample);
+
+                m_logger.LogInfo() << "send values via ControlData";
             }
-        }
-    } /// namespace aa
-} /// namespace calc
+
+            // RawData 이벤트 수신 작업 함수
+            void Calc::TaskReceiveREventCyclic()
+            {
+                m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
+                                                        { OnReceiveREvent(sample); });
+                m_RawData->ReceiveEventREventCyclic();
+            }
+
+            void Calc::CloseSocket()
+            {
+                if (m_socket_fd != -1)
+                {
+                    close(m_socket_fd);
+                    m_socket_fd = -1;
+                }
+            }
+        } /// namespace aa
+    } /// namespace calc

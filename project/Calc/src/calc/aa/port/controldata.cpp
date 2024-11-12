@@ -45,7 +45,7 @@ ControlData::ControlData()
     : m_logger(ara::log::CreateLogger("CALC", "PORT", ara::log::LogLevel::kVerbose))
     , m_running{false}
     // , m_CEventData{0U, 0U, 0U}
-    , m_CEventData{0U} // Control data Pport interface 생성자
+    , m_CEventData{0U} // Control data Pport interface 생성자, Pport 1개이므로 1개의 데이터만 사용
 {
 }
  
@@ -100,7 +100,7 @@ void ControlData::SendEventCEventCyclic()
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             auto send = m_interface->CEvent.Send(m_CEventData);
-            if (send.HasValue())
+            if (send.Ha sValue())
             {
                 m_logger.LogVerbose() << "ControlData::SendEventCEventCyclic::Send";
             }
@@ -110,6 +110,7 @@ void ControlData::SendEventCEventCyclic()
             }
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
+        // std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }
 

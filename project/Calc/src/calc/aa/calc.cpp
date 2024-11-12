@@ -77,8 +77,6 @@ namespace calc
 
             m_workers.Async([this]
                             { TaskReceiveREventCyclic(); });
-            // m_workers.Async([this]
-            //                 { m_RawData->ReceiveEventREventCyclic(); });
             m_workers.Async([this]
                             { m_ControlData->SendEventCEventCyclic(); });
             m_workers.Async([this]
@@ -91,7 +89,7 @@ namespace calc
         {
             m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
                                                     { OnReceiveREvent(sample); });
-            // m_RawData->ReceiveEventREventCyclic();
+            m_RawData->ReceiveEventREventCyclic();
         }
 
         void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)

@@ -38,6 +38,12 @@ namespace sensor
 
         Sensor::~Sensor()
         {
+            if (!m_simulation)
+            {
+                capR.release();
+                capL.release();
+            }
+            close(sock);
         }
 
         bool Sensor::Initialize()
@@ -215,11 +221,6 @@ namespace sensor
 
                 m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = " << bufferL.size() << ")";
             }
-            if (!m_simulation)
-            {
-                capR.release();
-                capL.release();
-            }
         }
 
         void Sensor::save_data(double timestamp, const std::vector<uint8_t> &left_image, const std::vector<uint8_t> &right_image, const std::vector<float> &lidar_data)
@@ -265,6 +266,5 @@ namespace sensor
                 m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
             }
         }
-
     } /// namespace aa
 } /// namespace sensor

@@ -13,16 +13,6 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
-#include <vector>
-#include <cstdint>
-#include <memory>
-#include <chrono>
-#include <opencv2/opencv.hpp>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
 
 #define SERVER_IP "172.31.41.14" // EC2 인스턴스의 public IP
 #define PORT 8080
@@ -104,6 +94,8 @@ namespace calc
             m_RawData->Terminate();
 
             CloseSocket();
+
+            m_workers.Wait();
         }
 
         // 메인 실행 함수: 작업 스레드 시작
@@ -140,6 +132,36 @@ namespace calc
             m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
         }
 
+        bool Calc::ReconnectToServer()
+        {
+            CloseSocket();
+
+            if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+            {
+                m_logger.LogError() << "Socket creation failed during reconnection";
+                return false;
+            }
+
+            struct sockaddr_in server_address;
+            server_address.sin_family = AF_INET;
+            server_address.sin_port = htons(PORT);
+
+            if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+            {
+                m_logger.LogError() << "Invalid address/ Address not supported during reconnection";
+                return false;
+            }
+
+            if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+            {
+                m_logger.LogError() << "Reconnection Failed";
+                return false;
+            }
+
+            m_logger.LogInfo() << "Reconnected to server successfully";
+            return true;
+        }
+
         // 소켓 통신 처리 함수
         void Calc::SocketCommunication()
         {
@@ -159,41 +181,53 @@ namespace calc
                     m_newDataAvailable = false;
                 }
 
-                // 데이터를 두 부분으로 나누어 전송(19200, 19200)
-                std::vector<uint8_t> bufferL(combinedData.begin(), combinedData.begin() + BUFFER_SIZE);
-                std::vector<uint8_t> bufferR(combinedData.begin() + BUFFER_SIZE, combinedData.end());
-
-                // bufferL과 bufferR을 하나의 벡터로 결합
-                std::vector<uint8_t> combinedBuffer;
-                combinedBuffer.insert(combinedBuffer.end(), bufferL.begin(), bufferL.end());
-                combinedBuffer.insert(combinedBuffer.end(), bufferR.begin(), bufferR.end());
-
                 // 결합된 데이터 전송
-                ssize_t sent_bytes = send(m_socket_fd, combinedBuffer.data(), combinedBuffer.size(), 0);
+                ssize_t sent_bytes = send(m_socket_fd, combinedData.data(), combinedData.size(), 0);
 
-                if (sent_bytes != combinedBuffer.size())
+                if (sent_bytes != combinedData.size())
                 {
                     m_logger.LogError() << "Send failed: " << strerror(errno);
+                    if (errno == EPIPE)
+                    {
+                        m_logger.LogError() << "Broken pipe detected. Attempting to reconnect...";
+                        if (!ReconnectToServer())
+                        {
+                            m_logger.LogError() << "Reconnection failed. Exiting communication loop.";
+                            break;
+                        }
+                    }
                     continue;
                 }
-                float received_floats[2];
-                ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
+
+                float32_t received_floats[2];
+                ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float32_t) * 2, 0);
 
                 if (bytes_received == sizeof(float) * 2)
                 {
-                    m_logger.LogInfo() << "Received float 1: " << received_floats[0];
-                    m_logger.LogInfo() << "Received float 2: " << received_floats[1];
-
+                    m_logger.LogInfo() << "Received floats: " << received_floats[0] << ", " << received_floats[1];
                     ProcessReceivedFloats(received_floats[0], received_floats[1]);
                 }
                 else if (bytes_received == 0)
                 {
-                    m_logger.LogError() << "Connection closed by server";
-                    continue;
+                    m_logger.LogError() << "Connection closed by server. Attempting to reconnect...";
+                    if (!ReconnectToServer())
+                    {
+                        m_logger.LogError() << "Reconnection failed. Exiting communication loop.";
+                        break;
+                    }
                 }
                 else
                 {
                     m_logger.LogError() << "Receive failed: " << strerror(errno);
+                    if (errno == ECONNRESET)
+                    {
+                        m_logger.LogError() << "Connection reset by peer. Attempting to reconnect...";
+                        if (!ReconnectToServer())
+                        {
+                            m_logger.LogError() << "Reconnection failed. Exiting communication loop.";
+                            break;
+                        }
+                    }
                     continue;
                 }
             }

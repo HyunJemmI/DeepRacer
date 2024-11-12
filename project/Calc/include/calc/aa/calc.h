@@ -31,6 +31,9 @@
 #include <opencv2/opencv.hpp> // for OpenCV
 #include <cstdint>
 #include <chrono>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
 
 namespace calc
 {

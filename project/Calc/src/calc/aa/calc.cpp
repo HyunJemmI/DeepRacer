@@ -177,57 +177,57 @@ namespace calc
                 {
                     m_logger.LogError() << "Send failed: " << strerror(errno);
                     continue;
-
-                    float received_floats[2];
-                    ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
-
-                    if (bytes_received == sizeof(float) * 2)
-                    {
-                        m_logger.LogInfo() << "Received float 1: " << received_floats[0];
-                        m_logger.LogInfo() << "Received float 2: " << received_floats[1];
-
-                        ProcessReceivedFloats(received_floats[0], received_floats[1]);
-                    }
-                    else if (bytes_received == 0)
-                    {
-                        m_logger.LogError() << "Connection closed by server";
-                        continue;
-                    }
-                    else
-                    {
-                        m_logger.LogError() << "Receive failed: " << strerror(errno);
-                        continue;
-                    }
                 }
-            }
+                float received_floats[2];
+                ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
 
-            // 수신된 float 값 처리 함수
-            void Calc::ProcessReceivedFloats(float value1, float value2)
-            {
-                deepracer::service::controldata::skeleton::events::CEvent::SampleType sample;
-                sample.push_back(value1);
-                sample.push_back(value2);
-
-                m_ControlData->WriteDataCEvent(sample);
-
-                m_logger.LogInfo() << "send values via ControlData";
-            }
-
-            // RawData 이벤트 수신 작업 함수
-            void Calc::TaskReceiveREventCyclic()
-            {
-                m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
-                                                        { OnReceiveREvent(sample); });
-                m_RawData->ReceiveEventREventCyclic();
-            }
-
-            void Calc::CloseSocket()
-            {
-                if (m_socket_fd != -1)
+                if (bytes_received == sizeof(float) * 2)
                 {
-                    close(m_socket_fd);
-                    m_socket_fd = -1;
+                    m_logger.LogInfo() << "Received float 1: " << received_floats[0];
+                    m_logger.LogInfo() << "Received float 2: " << received_floats[1];
+
+                    ProcessReceivedFloats(received_floats[0], received_floats[1]);
+                }
+                else if (bytes_received == 0)
+                {
+                    m_logger.LogError() << "Connection closed by server";
+                    continue;
+                }
+                else
+                {
+                    m_logger.LogError() << "Receive failed: " << strerror(errno);
+                    continue;
                 }
             }
-        } /// namespace aa
-    } /// namespace calc
+        }
+
+        // 수신된 float 값 처리 함수
+        void Calc::ProcessReceivedFloats(float value1, float value2)
+        {
+            deepracer::service::controldata::skeleton::events::CEvent::SampleType sample;
+            sample.push_back(value1);
+            sample.push_back(value2);
+
+            m_ControlData->WriteDataCEvent(sample);
+
+            m_logger.LogInfo() << "send values via ControlData";
+        }
+
+        // RawData 이벤트 수신 작업 함수
+        void Calc::TaskReceiveREventCyclic()
+        {
+            m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
+                                                    { OnReceiveREvent(sample); });
+            m_RawData->ReceiveEventREventCyclic();
+        }
+
+        void Calc::CloseSocket()
+        {
+            if (m_socket_fd != -1)
+            {
+                close(m_socket_fd);
+                m_socket_fd = -1;
+            }
+        }
+    } /// namespace aa
+} /// namespace calc

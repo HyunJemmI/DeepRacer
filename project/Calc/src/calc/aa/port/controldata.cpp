@@ -41,7 +41,7 @@ namespace calc
         {
 
             ControlData::ControlData()
-                : m_logger(ara::log::CreateLogger("CALC", "PORT", ara::log::LogLevel::kVerbose)), m_running{false}, m_CEventData{0U, 0U, 0U}
+                : m_logger(ara::log::CreateLogger("CALC", "PORT", ara::log::LogLevel::kVerbose)), m_running{false}, m_CEventData{0U}
             {
             }
 

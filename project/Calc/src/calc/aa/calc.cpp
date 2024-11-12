@@ -16,36 +16,60 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
-#include <vector>
-#include <cstdint>
-#include <memory>
-#include <chrono>
-#include <opencv2/opencv.hpp> // OpenCV 관련 함수 사용을 위해 유지
-
 namespace calc
 {
     namespace aa
     {
 
         Calc::Calc()
-            : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose)), m_workers(3), m_running(false)
+            : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose)), m_workers(4), m_running(false), m_socket_fd(-1),
+              m_newDataAvailable(false)
         {
         }
 
         Calc::~Calc()
         {
+            CloseSocket();
         }
 
         bool Calc::Initialize()
         {
             m_logger.LogVerbose() << "Calc::Initialize";
-
-            bool init{true};
+            m_logger.LogInfo() << "Buffer size is set to " << BUFFER_SIZE;
 
             m_ControlData = std::make_shared<calc::aa::port::ControlData>();
             m_RawData = std::make_shared<calc::aa::port::RawData>();
 
-            return init;
+            // Client -> Server 연결
+            if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+            {
+                m_logger.LogError() << "Socket creation failed";
+                return false;
+            }
+
+            struct sockaddr_in server_address;
+            server_address.sin_family = AF_INET;
+            server_address.sin_port = htons(PORT);
+
+            if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+            {
+                m_logger.LogError() << "Invalid address/ Address not supported";
+                return false;
+            }
+
+            if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+            {
+                m_logger.LogError() << "Connection Failed";
+                return false;
+            }
+
+            m_logger.LogInfo() << "Connected to server successfully";
+
+            // 소켓을 비블로킹 모드로 설정
+            int flags = fcntl(m_socket_fd, F_GETFL, 0);
+            fcntl(m_socket_fd, F_SETFL, flags | O_NONBLOCK);
+
+            return true;
         }
 
         void Calc::Start()
@@ -64,9 +88,12 @@ namespace calc
             m_logger.LogVerbose() << "Calc::Terminate";
 
             m_running = false;
+            m_dataCV.notify_all();
 
             m_ControlData->Terminate();
             m_RawData->Terminate();
+
+            CloseSocket();
         }
 
         void Calc::Run()
@@ -81,6 +108,8 @@ namespace calc
                             { m_ControlData->SendEventCEventCyclic(); });
             m_workers.Async([this]
                             { m_RawData->ReceiveFieldRFieldCyclic(); });
+            m_workers.Async([this]
+                            { SocketCommunication(); });
 
             m_workers.Wait();
         }
@@ -95,32 +124,156 @@ namespace calc
         void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
         {
             std::vector<uint8_t> bufferCombined = sample;
-            std::vector<uint8_t> bufferR(bufferCombined.begin(), bufferCombined.begin() + 19200);
-            std::vector<uint8_t> bufferL(bufferCombined.begin() + 19200, bufferCombined.end());
 
-            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << bufferR.size() << ", L = " << bufferL.size();
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << BUFFER_SIZE << ", L = " << BUFFER_SIZE;
 
-            // // Image 저장
-            // std::string data_path = "/home/ubuntu/test_socket_AA_data";
-            // try {
-            //     if ((bufferR.size() != 160 * 120) || (bufferL.size() != 160 * 120)) {
-            //         m_logger.LogVerbose() << "Calc::OnReceiveREvent - Warning: received image size does not match expected size";
-            //         m_running = false;
-            //     }else{
-            //         cv::Mat imgR(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferR.data()));
-            //         cv::Mat imgL(120, 160, CV_8UC1, const_cast<uint8_t*>(bufferL.data()));
-            //         cv::imwrite(data_path + "/" + "right" + "_" + std::to_string(bufferCombined[10000]) + ".png", imgR);
-            //         m_logger.LogInfo() << "Calc::OnReceiveREvent - Camera data ( right ) saved";
-            //         cv::imwrite(data_path + "/" + "left" + "_" + std::to_string(bufferCombined[10000]) + ".png", imgL);
-            //         m_logger.LogInfo() << "Calc::OnReceiveREvent - Camera data ( left ) saved";
-            //     }
-            // } catch (const std::exception& e) {
-            //     m_logger.LogVerbose() << "Calc::OnReceiveREvent - Error saving camera data: " << e.what();
-            // }
+            {
+                std::lock_guard<std::mutex> lock(m_dataMutex);
+                m_latestRawData = bufferCombined;
+                m_newDataAvailable = true;
+            }
+            m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
+        }
+        bool Calc::ReconnectToServer()
+        {
+            // 재연결 시도
+            for (int attempt = 0; attempt < MAX_RECONNECT_ATTEMPTS; ++attempt)
+            {
+                m_logger.LogInfo() << "Reconnection attempt " << attempt + 1 << " of " << MAX_RECONNECT_ATTEMPTS;
 
-            // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+                // 모두 실패 시 종료
+                CloseSocket();
+
+                if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+                {
+                    m_logger.LogError() << "Socket creation failed";
+                    continue;
+                }
+
+                struct sockaddr_in server_address;
+                server_address.sin_family = AF_INET;
+                server_address.sin_port = htons(PORT); // host to network short
+
+                // EC2 인스턴스의 public IP 주소
+                if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+                {
+                    m_logger.LogError() << "Invalid address/ Address not supported";
+                    continue;
+                }
+                // 연결 시도
+                if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+                {
+                    if (errno == EINPROGRESS)
+                    {
+                        fd_set fdset;
+                        struct timeval tv;
+                        FD_ZERO(&fdset);
+                        FD_SET(m_socket_fd, &fdset);
+                        tv.tv_sec = SOCKET_TIMEOUT_SEC;
+                        tv.tv_usec = 0;
+
+                        int rc = select(m_socket_fd + 1, NULL, &fdset, NULL, &tv);
+                        if (rc > 0)
+                        {
+                            // 연결 성공
+                            m_logger.LogInfo() << "Reconnected to server successfully";
+                            return true;
+                        }
+                    }
+                    m_logger.LogError() << "Connection Failed";
+                }
+                else
+                {
+                    m_logger.LogInfo() << "Reconnected to server successfully";
+                    return true;
+                }
+
+                sleep(RECONNECT_DELAY_SEC);
+            }
+
+            m_logger.LogError() << "Failed to reconnect after " << MAX_RECONNECT_ATTEMPTS << " attempts";
+            return false;
+        }
+
+        void Calc::SocketCommunication()
+        {
+            while (m_running)
+            {
+                std::vector<uint8_t> combinedData;
+                {
+                    std::unique_lock<std::mutex> lock(m_dataMutex);
+                    m_dataCV.wait(lock, [this]
+                                  { return m_newDataAvailable || !m_running; });
+                    if (!m_running)
+                        break;
+                    combinedData = m_latestRawData;
+                    m_newDataAvailable = false;
+                }
+
+                cv::Mat imgL(120, 160, CV_8UC1, combinedData.data());
+                cv::Mat imgR(120, 160, CV_8UC1, combinedData.data() + BUFFER_SIZE);
+
+                std::vector<uint8_t> combinedBuffer(combinedData.begin(), combinedData.end());
+
+                fd_set write_fds;
+                struct timeval tv;
+                FD_ZERO(&write_fds);
+                FD_SET(m_socket_fd, &write_fds);
+                tv.tv_sec = SOCKET_TIMEOUT_SEC;
+                tv.tv_usec = 0;
+
+                int select_result = select(m_socket_fd + 1, NULL, &write_fds, NULL, &tv);
+                if (select_result > 0)
+                {
+                    ssize_t sent_bytes = send(m_socket_fd, combinedBuffer.data(), combinedBuffer.size(), 0);
+                    if (sent_bytes != static_cast<ssize_t>(combinedBuffer.size()))
+                    {
+                        m_logger.LogError() << "Send failed: " << strerror(errno);
+                        if (!ReconnectToServer())
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                float received_floats[2];
+                fd_set read_fds;
+                FD_ZERO(&read_fds);
+                FD_SET(m_socket_fd, &read_fds);
+                tv.tv_sec = SOCKET_TIMEOUT_SEC;
+                tv.tv_usec = 0;
+
+                select_result = select(m_socket_fd + 1, &read_fds, NULL, NULL, &tv);
+                if (select_result > 0)
+                {
+                    ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float) * 2, 0);
+                    if (bytes_received == sizeof(float) * 2)
+                    {
+                        ProcessReceivedFloats(received_floats[0], received_floats[1]);
+                    }
+                }
+            }
+        }
+
+        // 수신된 float 값 처리 함수
+        void Calc::ProcessReceivedFloats(float value1, float value2)
+        {
+            deepracer::service::controldata::skeleton::events::CEvent::SampleType sample;
+            sample.push_back(value1);
+            sample.push_back(value2);
+
             m_ControlData->WriteDataCEvent(sample);
-            m_logger.LogInfo() << "Calc::OnReceiveREvent - data size = " << bufferCombined.size();
+
+            m_logger.LogInfo() << "send values via ControlData";
+        }
+
+        void Calc::CloseSocket()
+        {
+            if (m_socket_fd != -1)
+            {
+                close(m_socket_fd);
+                m_socket_fd = -1;
+            }
         }
 
     } /// namespace aa

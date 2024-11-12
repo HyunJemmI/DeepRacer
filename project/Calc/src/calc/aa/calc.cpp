@@ -217,9 +217,6 @@ namespace calc
                     m_newDataAvailable = false;
                 }
 
-                cv::Mat imgL(120, 160, CV_8UC1, combinedData.data());
-                cv::Mat imgR(120, 160, CV_8UC1, combinedData.data() + BUFFER_SIZE);
-
                 std::vector<uint8_t> combinedBuffer(combinedData.begin(), combinedData.end());
 
                 fd_set write_fds;

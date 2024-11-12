@@ -31,6 +31,8 @@ namespace sensor
               data_path("/home/ubuntu/test_socket_AA_data"), last_save_time(std::chrono::system_clock::now()) // 데이터 저장 시간
               ,
               save_interval(std::chrono::seconds(5)) // path로 데이터 저장 주기
+              ,
+              capR(), capL()
         {
         }
 
@@ -45,6 +47,55 @@ namespace sensor
             bool init{true};
 
             m_RawData = std::make_shared<sensor::aa::port::RawData>();
+
+            // Camera 접근
+            capR.open(0);
+            capL.open(2);
+
+            // 접근 여부 파악
+            if (capR.isOpened() && capL.isOpened())
+            { // 카메라 접근 되면 카메라에서 데이터 받아온다.
+                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Open Stereo Camera Successfully";
+
+                // MJPEC 코덱 및 크기 설정
+                capR.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+                capR.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+                capR.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+                capL.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
+                capL.set(cv::CAP_PROP_FRAME_WIDTH, 160);
+                capL.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+
+                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
+
+                m_simulation = false;
+            }
+            else
+            { // Simulation에서 센서 데이터 받아온다.
+                m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Camera access failed";
+                m_logger.LogInfo() << "Sensor - RUNNING ON SIMULATION";
+                m_simulation = true;
+
+                // udp 통신 소켓 설정
+                int opt = 1;
+                if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+                {
+                    m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - setsockopt(SO_REUSEADDR) failed";
+                    m_running = false;
+                }
+
+                // udp 통신 소켓 바인딩 (주소 할당)
+                sockaddr_in addr;
+                addr.sin_family = AF_INET;
+                addr.sin_port = htons(udp_port);
+                addr.sin_addr.s_addr = inet_addr(udp_ip.c_str());
+
+                if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+                {
+                    m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - bind failed";
+                    m_running = false;
+                }
+            }
 
             return init;
         }
@@ -86,53 +137,6 @@ namespace sensor
 
         void Sensor::TaskGenerateREventValue()
         {
-            // Camera 객체 생성
-            cv::VideoCapture capR(0);
-            cv::VideoCapture capL(2);
-
-            // 접근 여부 파악
-            if (capR.isOpened() && capL.isOpened())
-            { // 카메라 접근 되면 카메라에서 데이터 받아온다.
-                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Open Stereo Camera Successfully";
-
-                // MJPEC 코덱 및 크기 설정
-                capR.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-                capR.set(cv::CAP_PROP_FRAME_WIDTH, 160);
-                capR.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
-
-                capL.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-                capL.set(cv::CAP_PROP_FRAME_WIDTH, 160);
-                capL.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
-
-                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
-            }
-            else
-            { // Simulation에서 센서 데이터 받아온다.
-                m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Camera access failed";
-                m_logger.LogInfo() << "Sensor - RUNNING ON SIMULATION";
-                m_simulation = true;
-
-                // udp 통신 소켓 설정
-                int opt = 1;
-                if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-                {
-                    m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - setsockopt(SO_REUSEADDR) failed";
-                    m_running = false;
-                }
-
-                // udp 통신 소켓 바인딩 (주소 할당)
-                sockaddr_in addr;
-                addr.sin_family = AF_INET;
-                addr.sin_port = htons(udp_port);
-                addr.sin_addr.s_addr = inet_addr(udp_ip.c_str());
-
-                if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-                {
-                    m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - bind failed";
-                    m_running = false;
-                }
-            }
-
             cv::Mat frameR;               // 카메라1 이미지 프레임
             cv::Mat frameL;               // 카메라2 이미지 프레임
             cv::Mat frameR_grayscaled;    // GrayScaled 처리된 프레임1

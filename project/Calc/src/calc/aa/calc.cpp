@@ -104,8 +104,6 @@ namespace calc
             m_RawData->Terminate();
 
             CloseSocket();
-
-            m_workers.Wait();
         }
 
         // 메인 실행 함수: 작업 스레드 시작

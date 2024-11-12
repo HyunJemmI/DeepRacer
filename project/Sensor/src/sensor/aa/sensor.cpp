@@ -38,12 +38,6 @@ namespace sensor
 
         Sensor::~Sensor()
         {
-            if (!m_simulation)
-            {
-                capR.release();
-                capL.release();
-            }
-            close(sock);
         }
 
         bool Sensor::Initialize()
@@ -75,6 +69,8 @@ namespace sensor
                 m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
 
                 m_simulation = false;
+                close(sock);
+                m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - close UDP socket";
             }
             else
             { // Simulation에서 센서 데이터 받아온다.
@@ -121,6 +117,16 @@ namespace sensor
             m_logger.LogVerbose() << "Sensor::Terminate";
 
             m_running = false;
+
+            if (!m_simulation)
+            {
+                capR.release();
+                capL.release();
+            }
+            else
+            {
+                close(sock);
+            }
 
             m_RawData->Terminate();
         }

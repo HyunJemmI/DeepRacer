@@ -1,0 +1,51 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "execution-manifest",
+    "process-name" : "Calc",
+    "executable" : "Calc",
+    "executable-version" : "1.0.0",
+    "reporting-behavior" : "report",
+    "num-of-restart-attempts" : "0",
+    "functional-cluster-affiliation" : "none",
+    "startup-config" : {
+    	"policy" : "other",
+    	"priority" : "0",
+    	"program-argument" : "",
+    	"startup-timeout" : "0.0",
+    	"termination-timeout" : "0.0",
+    	"termination-behavior" : "not-self-terminating",
+    	"environment-variables" : [
+    	]
+    },
+    "resource-group" : {
+    	"cpu-usage" : "undefined",
+    	"mem-usage" : "undefined"
+    },
+    "state-dependencies" : [
+        {
+            "function-group" : "MachineFG",
+            "state" : "Startup"
+        }
+    ],
+    "execution-dependencies" : [
+        {
+            "dependent-process" : "CM",
+            "state" : "Running"
+        }
+    ],
+    "log-trace-configuration" : {
+    	"default-log-level" : "verbose",
+    	"log-modes" : [
+    	    "console"
+    	],
+    	"application-id" : "CALC",
+    	"application-description" : "undefined",
+    	"context-id" : "CALC",
+    	"file-path" : "undefined"
+    },
+    "core-affinity" : [
+    ],
+    "allowed-persistencies" : [
+    ]
+}

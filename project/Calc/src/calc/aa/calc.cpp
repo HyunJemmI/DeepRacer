@@ -54,6 +54,7 @@ namespace calc
             struct sockaddr_in server_address;
             server_address.sin_family = AF_INET;
             server_address.sin_port = htons(PORT);
+            m_logger.LogInfo() << "Calc::Initialize - port init";
 
             if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
             {

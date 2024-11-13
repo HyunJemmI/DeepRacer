@@ -62,6 +62,8 @@ namespace calc
                 return false;
             }
 
+            m_logger.LogInfo() << "Calc::Initialize - inet_pton";
+
             if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
             {
                 m_logger.LogError() << "Connection Failed";

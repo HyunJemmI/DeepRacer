@@ -45,30 +45,30 @@ namespace calc
             m_ControlData = std::make_shared<calc::aa::port::ControlData>();
             m_RawData = std::make_shared<calc::aa::port::RawData>();
 
-            if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-            {
-                m_logger.LogError() << "Socket creation failed";
-                return false;
-            }
+            // if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+            // {
+            //     m_logger.LogError() << "Socket creation failed";
+            //     return false;
+            // }
 
-            struct sockaddr_in server_address;
-            server_address.sin_family = AF_INET;
-            server_address.sin_port = htons(PORT);
-            m_logger.LogInfo() << "Calc::Initialize - port init";
+            // struct sockaddr_in server_address;
+            // server_address.sin_family = AF_INET;
+            // server_address.sin_port = htons(PORT);
+            // m_logger.LogInfo() << "Calc::Initialize - port init";
 
-            if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
-            {
-                m_logger.LogError() << "Invalid address/ Address not supported";
-                return false;
-            }
+            // if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+            // {
+            //     m_logger.LogError() << "Invalid address/ Address not supported";
+            //     return false;
+            // }
 
-            m_logger.LogInfo() << "Calc::Initialize - inet_pton";
+            // m_logger.LogInfo() << "Calc::Initialize - inet_pton";
 
-            if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-            {
-                m_logger.LogError() << "Connection Failed";
-                return false;
-            }
+            // if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+            // {
+            //     m_logger.LogError() << "Connection Failed";
+            //     return false;
+            // }
 
             m_logger.LogInfo() << "Connected to server successfully";
             return true;

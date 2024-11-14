@@ -15,6 +15,8 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
+
+#include <vector>
  
 namespace calc
 {
@@ -23,7 +25,8 @@ namespace aa
  
 Calc::Calc()
     : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(3)
+    , m_workers(2)
+    , m_running(false)
 {
 }
  
@@ -58,6 +61,8 @@ void Calc::Terminate()
 {
     m_logger.LogVerbose() << "Calc::Terminate";
     
+    m_running = false;
+
     m_ControlData->Terminate();
     m_RawData->Terminate();
 }
@@ -65,12 +70,31 @@ void Calc::Terminate()
 void Calc::Run()
 {
     m_logger.LogVerbose() << "Calc::Run";
+
+    m_running = true;
     
     m_workers.Async([this] { m_ControlData->SendEventCEventCyclic(); });
-    m_workers.Async([this] { m_RawData->ReceiveEventREventCyclic(); });
-    m_workers.Async([this] { m_RawData->ReceiveFieldRFieldCyclic(); });
+    m_workers.Async([this] { TaskReceiveREventCyclic(); });
     
     m_workers.Wait();
+}
+
+// RawData 이벤트 수신 작업 함수
+void Calc::TaskReceiveREventCyclic()
+{
+    m_RawData->SetReceiveEventREventHandler([this](const auto &sample)
+    { 
+        OnReceiveREvent(sample); 
+    });
+    m_RawData->ReceiveEventREventCyclic();
+}
+
+// RawData 이벤트 수신 처리 함수
+void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
+{
+    std::vector<uint8_t> bufferCombined = sample;
+
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size();
 }
  
 } /// namespace aa

@@ -48,8 +48,15 @@ public:
 private:
     /// @brief Run software component
     void Run();
+
+    void TaskReceiveREventCyclic();
+
+// RawData 이벤트 수신 처리 함수
+    void OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample);
  
 private:
+    bool m_running;
+
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     

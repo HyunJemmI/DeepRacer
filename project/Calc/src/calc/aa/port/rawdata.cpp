@@ -227,6 +227,13 @@ void RawData::ReadDataREvent(ara::com::SamplePtr<deepracer::service::rawdata::pr
 {
     auto data = *samplePtr.Get();
     // put your logic
+    m_logger.LogInfo() << "RawData::ReadDataREvent::data::" << data.size();
+
+    // REvent 핸들러가 등록되어 있을시 해당 핸들러는 값과 함께 호출한다.
+    if (m_receiveEventREventHandler != nullptr)
+    {
+        m_receiveEventREventHandler(data);
+    }
 }
  
 void RawData::SubscribeRField()
@@ -398,6 +405,13 @@ void RawData::RequestRMethod(const double& a, const deepracer::type::Arithmetic&
             m_logger.LogError() << "RawData::RequestRMethod::" << response.Error().Message();
         }
     }
+}
+
+// 개발자 추가 함수
+// REvent 수신에 대한 핸들러 등록 함수.
+void RawData::SetReceiveEventREventHandler(std::function<void(const deepracer::service::rawdata::proxy::events::REvent::SampleType &)> handler)
+{
+    m_receiveEventREventHandler = handler;
 }
  
 } /// namespace port

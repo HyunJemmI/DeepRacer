@@ -2,7 +2,7 @@
 // Created by Kacper Raczy on 2020-01-31.
 //
 
-#include "sensor/aa/port/homomorphic_filter.hpp"
+#include "sensor/aa/homomorphic_filter.hpp"
 
 namespace hf
 {

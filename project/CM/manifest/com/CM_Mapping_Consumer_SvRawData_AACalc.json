@@ -4,7 +4,7 @@
     "manifest-type": "communication-management-manifest",
     "service-protocol": "someip",
     "connector": "lo",
-    "unicast-address": "192.168.57.234",
+    "unicast-address": "192.168.200.163",
     "tcp-port": "21011",
     "udp-port": "21011",
     "skeletons": [],

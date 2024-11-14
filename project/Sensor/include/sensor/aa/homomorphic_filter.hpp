@@ -1,6 +1,10 @@
+#ifndef HOMOMORPHIC_FILTER_HPP
+#define HOMOMORPHIC_FILTER_HPP
 //
 // Created by Kacper Raczy on 2020-01-31.
 //
+
+#include <opencv2/opencv.hpp>
 
 namespace hf
 {
@@ -38,3 +42,5 @@ namespace hf
   void dftShift(cv::InputOutputArray _out);
 
 }
+
+#endif // HOMOMORPHIC_FILTER_HPP

@@ -5,8 +5,8 @@ import struct
 
 # 모델 및 소켓 설정
 model_path = '/home/ubuntu/test_socket/model.pb'
-HOST = '0.0.0.0'  # 모든 네트워크 인터페이스에서 연결 수락
-PORT = 15000  # 사용할 포트 번호
+HOST = '34.233.199.231'  # EC2에서 연결 수락
+PORT = 15000
 BUFFER_SIZE = 38400  # 120 * 160 * 2 (이미지의 픽셀 수)
 
 # 소켓 초기화 및 연결 대기

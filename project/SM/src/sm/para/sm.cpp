@@ -31,7 +31,7 @@ SM::~SM()
 {
 }
  
-bool SM::Initialize()
+bool SM::Initialize(int argc, char *argv[])
 {
     m_logger.LogVerbose() << "SM::Initialize";
     
@@ -40,6 +40,8 @@ bool SM::Initialize()
     m_DeepRacerFG = std::make_shared<sm::para::port::DeepRacerFG>();
     m_MachineFG = std::make_shared<sm::para::port::MachineFG>();
     
+    ParseArgumentToState(argc, argv);
+
     return init;
 }
  

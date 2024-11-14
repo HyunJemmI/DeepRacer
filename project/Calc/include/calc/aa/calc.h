@@ -22,52 +22,68 @@
  
 #include "para/swc/port_pool.h"
  
+#include <mutex>
+#include <condition_variable>
+#include <vector>
+#include <memory>
+#include <arpa/inet.h> // for socket communication
+#include <sys/socket.h>
+#include <opencv2/opencv.hpp> // for OpenCV
+#include <cstdint>
+#include <chrono>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+
 namespace calc
 {
 namespace aa
 {
- 
+
 class Calc
 {
 public:
     /// @brief Constructor
     Calc();
-    
+
     /// @brief Destructor
     ~Calc();
-    
+
     /// @brief Initialize software component
     bool Initialize();
-    
+
     /// @brief Start software component
     void Start();
-    
+
     /// @brief Terminate software component
     void Terminate();
- 
-private:
-    /// @brief Run software component
-    void Run();
 
+private:
+    void Run(); // Run software component
     void TaskReceiveREventCyclic();
-
-// RawData 이벤트 수신 처리 함수
+    void TaskReceiveNotifyRFieldCyclic();
     void OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample);
- 
-private:
-    bool m_running;
 
-    /// @brief Pool of port
-    ::para::swc::PortPool m_workers;
-    
-    /// @brief Logger for software component
-    ara::log::Logger& m_logger;
-    
-    /// @brief Instance of Port {Calc.ControlData}
-    std::shared_ptr<calc::aa::port::ControlData> m_ControlData;
-    
-    /// @brief Instance of Port {Calc.RawData}
-    std::shared_ptr<calc::aa::port::RawData> m_RawData;
+    bool ReconnectToServer();                               // Reconnect to the server
+    void SocketCommunication();                             // Handle socket communication
+    void ProcessReceivedFloats(float value1, float value2); // Process received float values
+    void CloseSocket();                                     // Close the socket
+
+private:
+    bool m_running;          // Flag to indicate if the component is running
+    int m_socket_fd;         // Socket file descriptor for communication
+    bool m_newDataAvailable; // Flag to indicate new data availability
+
+    std::mutex m_dataMutex;           // Mutex for thread synchronization
+    std::condition_variable m_dataCV; // Condition variable for thread synchronization
+
+    ::para::swc::PortPool m_workers; // Pool of port workers
+    ara::log::Logger &m_logger;      // Logger for logging messages
+
+    std::shared_ptr<calc::aa::port::ControlData> m_ControlData; // ControlData port instance
+    std::shared_ptr<calc::aa::port::RawData> m_RawData;         // RawData port instance
+
+    deepracer::service::rawdata::proxy::events::REvent::SampleType m_latestRawData; // Latest raw data received from the sensor
 };
  
 } /// namespace aa

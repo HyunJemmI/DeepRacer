@@ -95,6 +95,7 @@ void Sensor::TaskGenerateREventValue()
         m_RawData->WriteDataREvent(settingSampleValue);
 
         m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = " << bufferL.size() << ")";
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 }
 

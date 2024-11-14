@@ -14,8 +14,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
-#define SERVER_IP "172.31.41.14" // EC2 인스턴스의 public IP
-#define PORT 65533
+#define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
+#define PORT 15000
 #define BUFFER_SIZE 19200
 
 namespace calc

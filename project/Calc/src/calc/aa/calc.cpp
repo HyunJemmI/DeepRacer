@@ -73,8 +73,8 @@ void Calc::Run()
 
     m_running = true;
     
-    m_workers.Async([this] { m_ControlData->SendEventCEventCyclic(); });
     m_workers.Async([this] { TaskReceiveREventCyclic(); });
+    m_workers.Async([this] { m_ControlData->SendEventCEventCyclic(); });
     
     m_workers.Wait();
 }

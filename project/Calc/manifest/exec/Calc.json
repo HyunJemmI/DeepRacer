@@ -30,7 +30,7 @@
     ],
     "execution-dependencies" : [
         {
-            "dependent-process" : "CM",
+            "dependent-process" : "Sensor",
             "state" : "Running"
         }
     ],

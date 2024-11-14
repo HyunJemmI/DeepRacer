@@ -4,8 +4,6 @@
 # ============================================================================
  
 add_executable(${PARA_APP_NAME})
-set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
-find_package(OpenCV REQUIRED)
  
 # ============================================================================
 # This setting is required for binary targets.
@@ -19,13 +17,11 @@ Para_Target(${PARA_APP_NAME}
 # ============================================================================
 target_include_directories(${PARA_APP_NAME}
                            PRIVATE
-                           ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           ${OpenCV_INCLUDE_DIRS})
+                           ${CMAKE_CURRENT_SOURCE_DIR}/include)
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
-                      pthread
-                      ${OpenCV_LIBS})
+                      pthread)
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE

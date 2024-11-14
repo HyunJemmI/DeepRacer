@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : sm.cpp
 /// SOFTWARE COMPONENT NAME           : SM
-/// GENERATED DATE                    : 2024-11-01 13:31:52
+/// GENERATED DATE                    : 2024-11-14 15:25:13
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +23,7 @@ namespace para
  
 SM::SM()
     : m_logger(ara::log::CreateLogger("SM", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(3)
+    , m_workers(2)
 {
 }
  
@@ -31,7 +31,7 @@ SM::~SM()
 {
 }
  
-bool SM::Initialize(int argc, char *argv[])
+bool SM::Initialize()
 {
     m_logger.LogVerbose() << "SM::Initialize";
     
@@ -40,9 +40,6 @@ bool SM::Initialize(int argc, char *argv[])
     m_DeepRacerFG = std::make_shared<sm::para::port::DeepRacerFG>();
     m_MachineFG = std::make_shared<sm::para::port::MachineFG>();
     
-    // Program Argument 를 통해 SM에서 Actuator로 실행할지 혹은 SimActuator로 실행할지를 결정하게 된다.
-    ParseArgumentToState(argc, argv);
-
     return init;
 }
  
@@ -69,41 +66,10 @@ void SM::Run()
 {
     m_logger.LogVerbose() << "SM::Run";
     
-    m_workers.Async([this] { TaskChangeDeepRacerFGState(); });
     m_workers.Async([this] { m_DeepRacerFG->NotifyDeepRacerFGCyclic(); });
     m_workers.Async([this] { m_MachineFG->NotifyMachineFGCyclic(); });
     
     m_workers.Wait();
-}
-
-void SM::TaskChangeDeepRacerFGState()
-{
-    // DeepRacerFG 포트에서 FG를 SM에서 직접 제어하여 State를 변경하도록 한다.
-    if (m_stateType == ara::sm::DeepRacerStateType::kDevice || m_stateType == ara::sm::DeepRacerStateType::kSimulation)
-    {
-        m_DeepRacerFG->ChangeDeepRacerFGManual(m_stateType);
-    }
-}
-
-// Initialize에서 호출되는 함수로 Program argument를 통해 SM Run시에 바꿔야 할 State를 지정하여 주는 함수
-void SM::ParseArgumentToState(int argc, char *argv[])
-{
-    if (argc >= 2)
-    {
-        std::string argument {argv[1]};
-        std::transform(argument.begin(), argument.end(), argument.begin(), ::tolower);
-
-        // Program Argument가 simulation으로 설정되어 있다면 Simulation State로 설정하게 된다.
-        // 즉, SimActuator를 실행한다.
-        if (argument == "simulation") {
-            m_stateType = ara::sm::DeepRacerStateType::kSimulation;
-        }
-        // Program Argument가 device로 설정되어 있다면 Device State로 설정하게 된다.
-        // 즉, Actuator를 실행한다.
-        else if (argument == "device") {
-            m_stateType = ara::sm::DeepRacerStateType::kDevice;
-        }
-    }
 }
  
 } /// namespace para

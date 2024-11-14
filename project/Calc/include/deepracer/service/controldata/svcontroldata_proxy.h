@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : svcontroldata_proxy.h
 /// SERVICE INTERFACE NAME            : SvControlData
-/// GENERATED DATE                    : 2024-11-01 13:31:52
+/// GENERATED DATE                    : 2024-11-14 15:25:12
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///                                                                                                        
 /// CAUTION!! AUTOMATICALLY GENERATED FILE - DO NOT EDIT                                                   
@@ -43,7 +43,7 @@ class CEvent
 public:
     /// @brief Type alias for type of event data
     /// @uptrace{SWS_CM_00162, SWS_CM_90437}
-    using SampleType = deepracer::type::Uint8Vector;
+    using SampleType = deepracer::type::FloatArray;
     /// @brief Constructor
     explicit CEvent(para::com::ProxyInterface* interface) : mInterface(interface)
     {

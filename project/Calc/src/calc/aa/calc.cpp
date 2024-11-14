@@ -17,8 +17,7 @@
 #include "calc/aa/calc.h"
 
 #define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
-#define PORT 15000
-#define BUFFER_SIZE 19200
+#define PORT 15001
 
 namespace calc
 {
@@ -119,7 +118,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 {
     std::vector<uint8_t> bufferCombined = sample;
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << BUFFER_SIZE << ", L = " << BUFFER_SIZE;
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size();
 
     {
         std::lock_guard<std::mutex> lock(m_dataMutex);

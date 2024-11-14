@@ -233,9 +233,7 @@ void Calc::SocketCommunication()
 // 수신된 float 값 처리 함수
 void Calc::ProcessReceivedFloats(float value1, float value2)
 {
-    ara::core::FloatArray arr = {value1, value2};
-    
-    deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = arr;
+    deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = {value1, value2};
     
     m_ControlData->WriteDataCEvent(sample);
 

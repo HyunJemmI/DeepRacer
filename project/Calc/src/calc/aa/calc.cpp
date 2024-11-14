@@ -120,7 +120,7 @@ namespace calc
         {
             std::vector<uint8_t> bufferCombined = sample;
 
-            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << buffer.size() << ", L = " << buffer.size();
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size: " << bufferCombined.size();
 
             {
                 std::lock_guard<std::mutex> lock(m_dataMutex);

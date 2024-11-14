@@ -27,7 +27,7 @@ namespace aa
 // 생성자: 클래스 멤버 초기화
 Calc::Calc()
     : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(3)
+    , m_workers(4)
     , m_running(false)
     , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
     , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
@@ -108,7 +108,7 @@ void Calc::Run()
     m_running = true;
 
     m_workers.Async([this]{ TaskReceiveREventCyclic(); });
-    // m_workers.Async([this]{ SocketCommunication(); });
+    m_workers.Async([this]{ SocketCommunication(); });
     m_workers.Async([this]{ m_ControlData->SendEventCEventCyclic(); });
     m_workers.Async([this]{ m_RawData->ReceiveFieldRFieldCyclic(); });
 
@@ -122,66 +122,13 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 
     m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size() << " , buffer[10000] = "<< bufferCombined[10000];
 
-    {
-        std::lock_guard<std::mutex> lock(m_dataMutex);
-        m_latestRawData = bufferCombined;
-        m_newDataAvailable = true;
-    }
-    m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
-
-    // inference로의 데이터 전송
-    std::vector<uint8_t> combinedData;
-    {
-        std::unique_lock<std::mutex> lock(m_dataMutex);
-        m_dataCV.wait(lock, [this] { return m_newDataAvailable || !m_running; });
-
-        combinedData = m_latestRawData;
-        m_newDataAvailable = false;
-    }
-
-    // 결합된 데이터 전송
-    ssize_t sent_bytes = send(m_socket_fd, combinedData.data(), combinedData.size(), 0);
-
-    if (sent_bytes != combinedData.size())
-    {
-        m_logger.LogError() << "Calc::SocketCommunication - Send failed: " << strerror(errno);
-        if (errno == EPIPE)
+    if (bufferCombined.size() == 38400){
         {
-            m_logger.LogError() << "Calc::SocketCommunication - Broken pipe detected. Attempting to reconnect...";
-            if (!ReconnectToServer())
-            {
-                m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-            }
+            std::lock_guard<std::mutex> lock(m_dataMutex);
+            m_latestRawData = bufferCombined;
+            m_newDataAvailable = true;
         }
-    }
-
-    float32_t received_floats[2];
-    ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float32_t) * 2, 0);
-
-    if (bytes_received == sizeof(float) * 2)
-    {
-        m_logger.LogInfo() << "Calc::SocketCommunication - Received floats: " << received_floats[0] << ", " << received_floats[1];
-        ProcessReceivedFloats(received_floats[0], received_floats[1]);
-    }
-    else if (bytes_received == 0)
-    {
-        m_logger.LogError() << "Calc::SocketCommunication - Connection closed by server. Attempting to reconnect...";
-        if (!ReconnectToServer())
-        {
-            m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-        }
-    }
-    else
-    {
-        m_logger.LogError() << "Calc::SocketCommunication - Receive failed: " << strerror(errno);
-        if (errno == ECONNRESET)
-        {
-            m_logger.LogError() << "Calc::SocketCommunication - Connection reset by peer. Attempting to reconnect...";
-            if (!ReconnectToServer())
-            {
-                m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-            }
-        }
+        m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
     }
 }
 

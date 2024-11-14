@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : sm.cpp
 /// SOFTWARE COMPONENT NAME           : SM
-/// GENERATED DATE                    : 2024-11-01 13:31:52
+/// GENERATED DATE                    : 2024-11-14 15:25:13
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +40,6 @@ bool SM::Initialize(int argc, char *argv[])
     m_DeepRacerFG = std::make_shared<sm::para::port::DeepRacerFG>();
     m_MachineFG = std::make_shared<sm::para::port::MachineFG>();
     
-    // Program Argument 를 통해 SM에서 Actuator로 실행할지 혹은 SimActuator로 실행할지를 결정하게 된다.
     ParseArgumentToState(argc, argv);
 
     return init;

@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 /// GENERATED FILE NAME               : deepracerfg.h
 /// SOFTWARE COMPONENT NAME           : DeepRacerFG
-/// GENERATED DATE                    : 2024-11-01 13:31:52
+/// GENERATED DATE                    : 2024-11-14 15:25:13
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifndef PARA_AA_GEN_SOFTWARE_COMPONENT_PPORT_SM_PARA_DEEPRACERFG_H
 #define PARA_AA_GEN_SOFTWARE_COMPONENT_PPORT_SM_PARA_DEEPRACERFG_H
@@ -60,7 +60,7 @@ public:
     
     /// @brief Function for undefined state callback
     void UndefinedStateHandler(ara::exec::FunctionGroup& functionGroup);
-    
+
 private:
     /// @brief Logger for this port
     ara::log::Logger& m_logger;
@@ -113,9 +113,9 @@ public:
      
     /// @brief Notify field directly with argument, Notifier
     void NotifyDeepRacerFGTriggered(const ara::sm::deepracerfg::skeleton::fields::Notifier::FieldType& value);
-     
-    void ChangeDeepRacerFGManual(const ara::sm::deepracerfg::skeleton::fields::Trigger::FieldType& value);
 
+    void ChangeDeepRacerFGManual(const ara::sm::deepracerfg::skeleton::fields::Trigger::FieldType &value);
+     
 private:
     /// @brief Logger for this port
     ara::log::Logger& m_logger;

@@ -20,6 +20,18 @@
 #include "sensor/aa/port/rawdata.h"
  
 #include "para/swc/port_pool.h"
+
+#include <iostream>
+#include <fstream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <cstring>
+#include <opencv2/opencv.hpp>
+#include <vector>
+#include <chrono>
+#include <cstdint>
  
 namespace sensor
 {
@@ -49,8 +61,33 @@ private:
     void Run();
 
     void TaskGenerateREventValue();
+
+    void save_data(
+    double timestamp,
+    const std::vector<uint8_t> &left_image,
+    const std::vector<uint8_t> &right_image,
+    const std::vector<float> &lidar_data);
+void save_lidar_data(
+    const std::vector<float> &lidar_data,
+    double timestamp);
+void save_camera_data(
+    const std::vector<uint8_t> &img_bytes,
+    double timestamp,
+    const std::string &camera_name);
  
 private:
+    std::string udp_ip;
+    int udp_port;
+    int sock;
+    int opt;
+    sockaddr_in addr;
+    std::string data_path;
+    std::chrono::_V2::system_clock::time_point last_save_time;
+    std::chrono::seconds save_interval;
+
+    cv::VideoCapture capR;
+    cv::VideoCapture capL;
+
     bool m_running;
 
     /// @brief Pool of port

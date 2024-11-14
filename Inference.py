@@ -15,7 +15,7 @@ server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind((HOST, PORT))
 server_socket.listen(1)
 
-print(f"{HOST}:{PORT} connect start~⊂((・▽・))⊃\.")
+print(f"{HOST}:{PORT} connect start~⊂((・▽・))⊃")
 
 # 모델 그래프 로드
 with tf.io.gfile.GFile(model_path, 'rb') as f:
@@ -31,8 +31,8 @@ input_tensor = sess.graph.get_tensor_by_name('main_level/agent/main/online/netwo
 output_tensor = sess.graph.get_tensor_by_name('main_level/agent/main/online/network_1/ppo_head_0/policy:0')
 
 try:
-    while True:
-        print("Wait for connecting Client...")
+    while True:  # 클라이언트 연결 재시도 루프
+        print("Wait for connecting Client...・▽・...")
         client_socket, addr = server_socket.accept()
         print(f"Complete!! ⊂((・▽・))⊃ port: {addr[1]}")
 
@@ -66,14 +66,16 @@ try:
                 client_socket.sendall(data)
 
                 print(f"Predicted Steering: {steering}, Throttle: {Throttle}")
+                print(data)  # 전송 데이터 출력
 
         except Exception as e:
             print(f"에러 발생: {e}")
         finally:
             client_socket.close()
+            print("Client Terminated, Waiting for new Connection.")
 
 except KeyboardInterrupt:
-    print("서버를 종료합니다.")
+    print("Terminate Server.")
 finally:
     server_socket.close()
     sess.close()

@@ -25,31 +25,34 @@ namespace calc
 
         // 생성자: 클래스 멤버 초기화
         Calc::Calc()
-            : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose)), m_workers(4), m_running(false), m_socket_fd(-1) // 실제 통신에 사용되는 소켓
-              ,
+            : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose)), 
+              m_workers(4), 
+              m_running(false), 
+              m_socket_fd(-1), // 실제 통신에 사용되는 소켓
               m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
         {
         }
 
         Calc::~Calc()
         {
-            CloseSocket();
+            CloseSocket(); // 소멸자용 소켓 닫기
         }
 
         // Client -> Server 연결
         bool Calc::Initialize()
         {
             m_logger.LogVerbose() << "Calc::Initialize";
-            m_logger.LogInfo() << "Buffer size is set to " << BUFFER_SIZE;
+            m_logger.LogInfo() << "Calc, Initialize, Buffer size is set to " << BUFFER_SIZE;
 
             m_ControlData = std::make_shared<calc::aa::port::ControlData>();
             m_RawData = std::make_shared<calc::aa::port::RawData>();
 
             if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
             {
-                m_logger.LogError() << "Socket creation failed";
+                m_logger.LogError() << "Calc, Initialize, set m_socket_fd, Socket creation failed";
                 return false;
             }
+            m_logger.LogInfo() << "Calc, Initialize, Created socket successfully";
 
             struct sockaddr_in server_address;
             server_address.sin_family = AF_INET;
@@ -57,17 +60,18 @@ namespace calc
 
             if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
             {
-                m_logger.LogError() << "Invalid address/ Address not supported";
+                m_logger.LogError() << "Calc, Initialize, Invalid address/ Address not supported";
                 return false;
             }
+            m_logger.LogInfo() << "Calc, Initialize, Address set Completed";
+
 
             if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
             {
-                m_logger.LogError() << "Connection Failed";
+                m_logger.LogError() << "Calc, Initialize, Connection Failed";
                 return false;
             }
-
-            m_logger.LogInfo() << "Connected to server successfully";
+            m_logger.LogInfo() << "Calc, Initialize, Connected to server successfully";
             return true;
         }
 
@@ -94,8 +98,6 @@ namespace calc
             m_RawData->Terminate();
 
             CloseSocket();
-
-            m_workers.Wait();
         }
 
         // 메인 실행 함수: 작업 스레드 시작
@@ -105,14 +107,10 @@ namespace calc
 
             m_running = true;
 
-            m_workers.Async([this]
-                            { TaskReceiveREventCyclic(); });
-            m_workers.Async([this]
-                            { m_ControlData->SendEventCEventCyclic(); });
-            m_workers.Async([this]
-                            { m_RawData->ReceiveFieldRFieldCyclic(); });
-            m_workers.Async([this]
-                            { SocketCommunication(); });
+            m_workers.Async([this]{ TaskReceiveREventCyclic(); });
+            m_workers.Async([this]{ m_ControlData->SendEventCEventCyclic(); });
+            m_workers.Async([this]{ m_RawData->ReceiveFieldRFieldCyclic(); });
+            m_workers.Async([this]{ SocketCommunication(); });
 
             m_workers.Wait();
         }
@@ -122,7 +120,7 @@ namespace calc
         {
             std::vector<uint8_t> bufferCombined = sample;
 
-            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << BUFFER_SIZE << ", L = " << BUFFER_SIZE;
+            m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size R = " << buffer.size() << ", L = " << buffer.size();
 
             {
                 std::lock_guard<std::mutex> lock(m_dataMutex);
@@ -138,7 +136,7 @@ namespace calc
 
             if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
             {
-                m_logger.LogError() << "Socket creation failed during reconnection";
+                m_logger.LogError() << "Calc::ReconnectToServer, Socket creation failed during reconnection";
                 return false;
             }
 
@@ -148,17 +146,18 @@ namespace calc
 
             if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
             {
-                m_logger.LogError() << "Invalid address/ Address not supported during reconnection";
+                m_logger.LogError() << "Calc::ReconnectToServer, Invalid address/ Address not supported during reconnection";
                 return false;
             }
+            m_logger.LogInfo() << "Calc, ReconnectToServer, Address set Completed";
+
 
             if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
             {
-                m_logger.LogError() << "Reconnection Failed";
+                m_logger.LogError() << "Calc::ReconnectToServer, Reconnection Failed";
                 return false;
             }
-
-            m_logger.LogInfo() << "Reconnected to server successfully";
+            m_logger.LogInfo() << "Calc::ReconnectToServer, Reconnected to server successfully";
             return true;
         }
 
@@ -186,13 +185,13 @@ namespace calc
 
                 if (sent_bytes != combinedData.size())
                 {
-                    m_logger.LogError() << "Send failed: " << strerror(errno);
+                    m_logger.LogError() << "Calc, SocketCommunication, Send failed: " << strerror(errno);
                     if (errno == EPIPE)
                     {
-                        m_logger.LogError() << "Broken pipe detected. Attempting to reconnect...";
+                        m_logger.LogError() << "Calc, SocketCommunication, Broken pipe detected. Attempting to reconnect...";
                         if (!ReconnectToServer())
                         {
-                            m_logger.LogError() << "Reconnection failed. Exiting communication loop.";
+                            m_logger.LogError() << "Calc, SocketCommunication, Reconnection failed. Exiting communication loop.";
                             break;
                         }
                     }
@@ -204,15 +203,15 @@ namespace calc
 
                 if (bytes_received == sizeof(float) * 2)
                 {
-                    m_logger.LogInfo() << "Received floats: " << received_floats[0] << ", " << received_floats[1];
+                    m_logger.LogInfo() << "Calc, SocketCommunication, Received floats: " << received_floats[0] << ", " << received_floats[1];
                     ProcessReceivedFloats(received_floats[0], received_floats[1]);
                 }
                 else if (bytes_received == 0)
                 {
-                    m_logger.LogError() << "Connection closed by server. Attempting to reconnect...";
+                    m_logger.LogError() << "Calc, SocketCommunication, Connection closed by server. Attempting to reconnect...";
                     if (!ReconnectToServer())
                     {
-                        m_logger.LogError() << "Reconnection failed. Exiting communication loop.";
+                        m_logger.LogError() << "Calc, SocketCommunication, Reconnection failed. Exiting communication loop.";
                         break;
                     }
                 }

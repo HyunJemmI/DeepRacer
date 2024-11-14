@@ -1,0 +1,27 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "service-instance-manifest",
+    "port-type" : "rport",
+    "instance-specifier" : "Actuator/AA/ControlData",
+    "service-protocol" : "someip",
+    "service-name" : "SvControlData",
+    "service-id" : "82",
+    "instance-id" : "1",
+    "major-version" : "1",
+    "minor-version" : "ANY",
+    "client-id" : "2",
+    "events" : [
+        {
+            "name" : "CEvent",
+            "event-id" : "1",
+            "transport" : "udp",
+            "max-segment-len" : "0",
+            "separation-time" : "0.0"
+        }
+    ],
+    "methods" : [
+    ],
+    "fields" : [
+    ]
+}

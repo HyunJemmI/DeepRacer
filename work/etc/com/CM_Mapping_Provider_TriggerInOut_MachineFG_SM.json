@@ -1,0 +1,45 @@
+{
+    "generation-by" : "PARA, PopcornSAR",
+    "autosar-version" : "R20-11",
+    "manifest-type" : "communication-management-manifest",
+    "service-protocol" : "ipc",
+    "connector" : "ipc",
+    "unicast-address" : "ipc",
+    "tcp-port" : "0",
+    "udp-port" : "0",
+    "skeletons" : [
+        {
+            "service-id" : "11",
+            "instance-id" : "1",
+            "major-version" : "1",
+            "minor-version" : "0",
+            "sd-server-timing" : {
+                "initial-delay-min" : "0.0",
+                "initial-delay-max" : "0.0",
+                "repetition-base" : "0.0",
+                "repetition-max" : "0",
+                "offer-cyclic" : "0.0",
+                "ttl" : "16777215",
+                "req-resp-delay-min" : "0.0",
+                "req-resp-delay-max" : "0.0"
+            },
+            "eventgroups" : [
+                {
+                    "eventgroup-id" : "2",
+                    "events" : ["2"],
+                    "threshold" : "0",
+                    "multicast-address" : "undefined",
+                    "multicast-udp-port" : "0",
+                    "req-resp-delay-min" : "0.0",
+                    "req-resp-delay-max" : "0.0"
+                }
+            ]
+        }
+    ],
+    "proxies" : [
+    ],
+    "secure-com-props-for-tcp" : [
+    ],
+    "secure-com-props-for-udp" : [
+    ]
+}

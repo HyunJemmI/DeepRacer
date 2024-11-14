@@ -202,6 +202,8 @@ namespace sensor
                     cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
                     cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
+                    // Homomorphic Filter
+
                     // 19200 고정된 크기로 Flatten(imencode하면 벡터 사이즈 변환 가능...)
                     bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
                     bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
@@ -272,5 +274,6 @@ namespace sensor
                 m_logger.LogVerbose() << "Sensor::save_camera_data - Error saving camera data: " << e.what();
             }
         }
+
     } /// namespace aa
 } /// namespace sensor

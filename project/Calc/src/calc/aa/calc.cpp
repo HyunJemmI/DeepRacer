@@ -26,9 +26,11 @@ namespace aa
 
 // 생성자: 클래스 멤버 초기화
 Calc::Calc()
-    : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose)), m_workers(4), m_running(false), m_socket_fd(-1) // 실제 통신에 사용되는 소켓
-        ,
-        m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
+    : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose))
+    , m_workers(4)
+    , m_running(false)
+    , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
+    , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
 {
 }
 
@@ -118,7 +120,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 {
     std::vector<uint8_t> bufferCombined = sample;
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size();
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size() << " , buffer[10000] = "<< bufferCombined[10000];
 
     {
         std::lock_guard<std::mutex> lock(m_dataMutex);
@@ -167,8 +169,7 @@ void Calc::SocketCommunication()
         std::vector<uint8_t> combinedData;
         {
             std::unique_lock<std::mutex> lock(m_dataMutex);
-            m_dataCV.wait(lock, [this]
-                            { return m_newDataAvailable || !m_running; });
+            m_dataCV.wait(lock, [this] { return m_newDataAvailable || !m_running; });
 
             if (!m_running)
                 break;

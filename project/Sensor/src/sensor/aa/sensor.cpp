@@ -79,8 +79,8 @@ void Sensor::Run()
 
 void Sensor::TaskGenerateREventValue()
 {
-    std::vector<uint8_t> bufferR(18200,0);
-    std::vector<uint8_t> bufferL(18200,1);
+    std::vector<uint8_t> bufferR(19200,0);
+    std::vector<uint8_t> bufferL(19200,1);
     while (m_running)
     {
         std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터

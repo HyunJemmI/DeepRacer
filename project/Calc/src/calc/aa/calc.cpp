@@ -95,6 +95,10 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     std::vector<uint8_t> bufferCombined = sample;
 
     m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size();
+
+    float result[2] = {1.0f, 2.0f};
+    m_ControlData->WriteDataCEvent(result);
+    m_logger.LogInfo() << "Calc::WriteDataCEvent( {" << result[0] << ", "<< result[1] << "} )";
 }
  
 } /// namespace aa

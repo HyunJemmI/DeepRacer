@@ -37,7 +37,7 @@ public:
     ~SM();
     
     /// @brief Initialize software component
-    bool Initialize();
+    bool Initialize(int argc, char *argv[]);
     
     /// @brief Start software component
     void Start();

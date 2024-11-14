@@ -1,63 +1,60 @@
 {
-    "generation-by" : "PARA, PopcornSAR",
-    "autosar-version" : "R20-11",
-    "manifest-type" : "execution-manifest",
-    "process-name" : "SM",
-    "executable" : "SM",
-    "executable-version" : "1.0.0",
-    "reporting-behavior" : "report",
-    "num-of-restart-attempts" : "0",
-    "functional-cluster-affiliation" : "state-management",
-    "startup-config" : {
-    	"policy" : "other",
-    	"priority" : "0",
-    	"program-argument" : "device",
-    	"startup-timeout" : "0.0",
-    	"termination-timeout" : "0.0",
-    	"termination-behavior" : "not-self-terminating",
-    	"environment-variables" : [
-    	]
+    "generation-by": "PARA, PopcornSAR",
+    "autosar-version": "R20-11",
+    "manifest-type": "execution-manifest",
+    "process-name": "SM",
+    "executable": "SM",
+    "executable-version": "1.0.0",
+    "reporting-behavior": "report",
+    "num-of-restart-attempts": "0",
+    "functional-cluster-affiliation": "state-management",
+    "startup-config": {
+        "policy": "other",
+        "priority": "0",
+        "program-argument": "simulation",
+        "startup-timeout": "0.0",
+        "termination-timeout": "0.0",
+        "termination-behavior": "not-self-terminating",
+        "environment-variables": []
     },
-    "resource-group" : {
-    	"cpu-usage" : "undefined",
-    	"mem-usage" : "undefined"
+    "resource-group": {
+        "cpu-usage": "undefined",
+        "mem-usage": "undefined"
     },
-    "state-dependencies" : [
+    "state-dependencies": [
         {
-            "function-group" : "MachineFG",
-            "state" : "Restart"
+            "function-group": "MachineFG",
+            "state": "Restart"
         },
         {
-            "function-group" : "MachineFG",
-            "state" : "Startup"
+            "function-group": "MachineFG",
+            "state": "Startup"
         },
         {
-            "function-group" : "MachineFG",
-            "state" : "Shutdown"
+            "function-group": "MachineFG",
+            "state": "Shutdown"
         },
         {
-            "function-group" : "MachineFG",
-            "state" : "Verify"
+            "function-group": "MachineFG",
+            "state": "Verify"
         }
     ],
-    "execution-dependencies" : [
+    "execution-dependencies": [
         {
-            "dependent-process" : "CM",
-            "state" : "Running"
+            "dependent-process": "CM",
+            "state": "Running"
         }
     ],
-    "log-trace-configuration" : {
-    	"default-log-level" : "verbose",
-    	"log-modes" : [
-    	    "console"
-    	],
-    	"application-id" : "SM",
-    	"application-description" : "undefined",
-    	"context-id" : "SM",
-    	"file-path" : "undefined"
+    "log-trace-configuration": {
+        "default-log-level": "verbose",
+        "log-modes": [
+            "console"
+        ],
+        "application-id": "SM",
+        "application-description": "undefined",
+        "context-id": "SM",
+        "file-path": "undefined"
     },
-    "core-affinity" : [
-    ],
-    "allowed-persistencies" : [
-    ]
+    "core-affinity": [],
+    "allowed-persistencies": []
 }

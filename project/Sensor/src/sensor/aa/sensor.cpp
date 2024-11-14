@@ -15,6 +15,7 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensor/aa/sensor.h"
+#include "sensor/aa/homomorphic_filter.hpp"
 
 namespace sensor
 {
@@ -153,8 +154,12 @@ namespace sensor
             cv::Mat frameL;               // 카메라2 이미지 프레임
             cv::Mat frameR_grayscaled;    // GrayScaled 처리된 프레임1
             cv::Mat frameL_grayscaled;    // GrayScaled 처리된 프레임2
+            cv::Mat resultR;              // homomorphic filter 처리된 프레임1
+            cv::Mat resultL;              // homomorphic filter 처리된 프레임2
             std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
             std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
+            hf::GaussianHighPassFilter hpf; //고주파 필터 인스턴스 생성
+            int borderType = cv::BORDER_REPLICATE; //테두리 타입 설정
             bufferR.reserve(19200);
             bufferL.reserve(19200);
 
@@ -203,10 +208,12 @@ namespace sensor
                     cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
                     // Homomorphic Filter
+                    hf::homomorphicFilter(frameR_grayscaled, resultR, 15.0, 0.5, 2.0, hpf, borderType);
+                    hf::homomorphicFilter(frameL_grayscaled, resultL, 15.0, 0.5, 2.0, hpf, borderType);
 
                     // 19200 고정된 크기로 Flatten(imencode하면 벡터 사이즈 변환 가능...)
-                    bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
-                    bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
+                    bufferR.assign(resultR.datastart, resultR.dataend);
+                    bufferL.assign(resultL.datastart, resultL.dataend);
 
                     // cv::imshow("frameR_grayscaled", frameR_grayscaled);
                     // cv::imshow("frameL_grayscaled", frameL_grayscaled);

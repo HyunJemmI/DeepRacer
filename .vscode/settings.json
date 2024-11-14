@@ -2,7 +2,7 @@
   "cmake.ignoreCMakeListsMissing": true,
   "cmake.configureOnOpen": false,
   "cmake.configureOnEdit": false,
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "files.associations": {
     "cctype": "cpp",
     "clocale": "cpp",

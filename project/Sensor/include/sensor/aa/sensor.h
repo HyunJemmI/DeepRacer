@@ -90,6 +90,8 @@ private:
 
     bool m_running;
 
+    bool m_simulation;
+
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     

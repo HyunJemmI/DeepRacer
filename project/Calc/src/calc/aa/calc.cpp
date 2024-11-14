@@ -237,7 +237,7 @@ void Calc::ProcessReceivedFloats(float value1, float value2)
     
     m_ControlData->WriteDataCEvent(sample);
 
-    m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << arr[0] << ", " << arr[1] << " }";
+    m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << sample[0] << ", " << sample[1] << " }";
 }
 
 // RawData 이벤트 수신 작업 함수

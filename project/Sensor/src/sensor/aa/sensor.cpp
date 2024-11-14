@@ -144,11 +144,9 @@ void Sensor::TaskGenerateREventValue()
     bufferR.reserve(19200);
     bufferL.reserve(19200);
 
-    if (m_simulation){
-        char buffer[65536]; // udp 통신 데이터 받을 버퍼
-        sockaddr_in addr;
-        socklen_t addr_len = sizeof(addr);
-    }
+    char buffer[65536]; // udp 통신 데이터 받을 버퍼
+    sockaddr_in addr;
+    socklen_t addr_len = sizeof(addr);
     
     while (m_running)
     {

@@ -58,7 +58,7 @@ int main(int argc, char *argv[], char* envp[])
         g_swcActuator = &swcActuator;
         
         // initialize software component
-        proceed = swcActuator.Initialize();
+        proceed = swcActuator.Initialize(argc, argv);
         
         if (proceed)
         {

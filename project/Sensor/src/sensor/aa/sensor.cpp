@@ -23,7 +23,8 @@ namespace aa
  
 Sensor::Sensor()
     : m_logger(ara::log::CreateLogger("SENS", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(2)
+    , m_workers(3)
+    , m_running(false)
 {
 }
  
@@ -56,18 +57,44 @@ void Sensor::Terminate()
 {
     m_logger.LogVerbose() << "Sensor::Terminate";
     
+    m_running = false;
+
     m_RawData->Terminate();
 }
  
 void Sensor::Run()
 {
     m_logger.LogVerbose() << "Sensor::Run";
+
+    m_running = true;
     
+    m_workers.Async([this] { TaskGenerateREventValue(); });
     m_workers.Async([this] { m_RawData->SendEventREventCyclic(); });
     m_workers.Async([this] { m_RawData->NotifyFieldRFieldCyclic(); });
     
     m_workers.Wait();
 }
- 
+
+void Sensor::TaskGenerateREventValue()
+{
+    std::vector<uint8_t> bufferR(18200,0);
+    std::vector<uint8_t> bufferL(18200,1);
+    while (m_running)
+    {
+        std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
+        bufferCombined.reserve(38400); // 크기 할당
+
+        // Camera R/L 벡터 병합
+        bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
+        bufferCombined.insert(bufferCombined.end(), bufferL.begin(), bufferL.end());
+
+        deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferCombined;
+        // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
+        m_RawData->WriteDataREvent(settingSampleValue);
+
+        m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = " << bufferL.size() << ")";
+    }
+}
+
 } /// namespace aa
 } /// namespace sensor

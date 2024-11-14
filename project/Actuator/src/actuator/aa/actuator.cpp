@@ -24,6 +24,7 @@ namespace aa
 Actuator::Actuator()
     : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose))
     , m_workers(1)
+    , m_running(false)
 {
 }
  
@@ -56,6 +57,8 @@ void Actuator::Terminate()
 {
     m_logger.LogVerbose() << "Actuator::Terminate";
     
+    m_running = false;
+
     m_ControlData->Terminate();
 }
  
@@ -63,9 +66,25 @@ void Actuator::Run()
 {
     m_logger.LogVerbose() << "Actuator::Run";
     
-    m_workers.Async([this] { m_ControlData->ReceiveEventCEventCyclic(); });
+    m_running = true;
+
+    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
     
     m_workers.Wait();
+}
+
+void Actuator::TaskReceiveCEventCyclic()
+{
+    m_ControlData->SetReceiveEventCEventHandler([this](const auto &sample)
+    {
+        OnReceiveCEvent(sample);
+    });
+    m_ControlData->ReceiveEventCEventCyclic();
+}
+
+void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
+{
+    m_logger.LogInfo() << "Actuator::OnReceiveCEvent - data = {" << sample[0] << ", " << sample[1] << "}";
 }
  
 } /// namespace aa

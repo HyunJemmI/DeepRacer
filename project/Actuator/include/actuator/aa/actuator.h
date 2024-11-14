@@ -47,8 +47,13 @@ public:
 private:
     /// @brief Run software component
     void Run();
+
+    void TaskReceiveCEventCyclic();
+
+    void OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample);
  
 private:
+    bool m_running;
     /// @brief Pool of port
     ::para::swc::PortPool m_workers;
     

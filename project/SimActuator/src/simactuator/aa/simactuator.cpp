@@ -55,6 +55,8 @@ void SimActuator::Start()
 void SimActuator::Terminate()
 {
     m_logger.LogVerbose() << "SimActuator::Terminate";
+
+    m_running = false;
     
     m_ControlData->Terminate();
 }
@@ -62,10 +64,26 @@ void SimActuator::Terminate()
 void SimActuator::Run()
 {
     m_logger.LogVerbose() << "SimActuator::Run";
+
+    m_running = true;
     
-    m_workers.Async([this] { m_ControlData->ReceiveEventCEventCyclic(); });
+    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
     
     m_workers.Wait();
+}
+
+void SimActuator::TaskReceiveCEventCyclic()
+{
+    m_ControlData->SetReceiveEventCEventHandler([this](const auto &sample)
+    { 
+        OnReceiveCEvent(sample); 
+    });
+    m_ControlData->ReceiveEventCEventCyclic();
+}
+
+void SimActuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
+{
+    m_logger.LogInfo() << "SimActuator::OnReceiveCEvent - data size = " << sample.size();
 }
  
 } /// namespace aa

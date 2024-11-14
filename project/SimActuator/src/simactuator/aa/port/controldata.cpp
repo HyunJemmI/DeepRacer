@@ -224,6 +224,21 @@ void ControlData::ReadDataCEvent(ara::com::SamplePtr<deepracer::service::control
 {
     auto data = *samplePtr.Get();
     // put your logic
+    m_logger.LogInfo() << "ControlData::ReadDataCEvent::data::" << data.size();
+
+    // REvent 핸들러가 등록되어 있을시 해당 핸들러는 값과 함께 호출한다.
+    if (m_receiveEventCEventHandler != nullptr)
+    {
+        m_receiveEventCEventHandler(data);
+    }
+}
+
+// 개발자 추가 함수
+// REvent 수신에 대한 핸들러 등록 함수.
+void ControlData::SetReceiveEventCEventHandler(
+    std::function<void(const deepracer::service::controldata::proxy::events::CEvent::SampleType &)> handler)
+{
+    m_receiveEventCEventHandler = handler;
 }
  
 } /// namespace port

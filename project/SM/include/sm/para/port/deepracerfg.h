@@ -60,7 +60,7 @@ public:
     
     /// @brief Function for undefined state callback
     void UndefinedStateHandler(ara::exec::FunctionGroup& functionGroup);
-    
+
 private:
     /// @brief Logger for this port
     ara::log::Logger& m_logger;
@@ -113,6 +113,8 @@ public:
      
     /// @brief Notify field directly with argument, Notifier
     void NotifyDeepRacerFGTriggered(const ara::sm::deepracerfg::skeleton::fields::Notifier::FieldType& value);
+
+    void ChangeDeepRacerFGManual(const ara::sm::deepracerfg::skeleton::fields::Trigger::FieldType &value);
      
 private:
     /// @brief Logger for this port

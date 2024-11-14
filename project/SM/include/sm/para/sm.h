@@ -48,6 +48,12 @@ public:
 private:
     /// @brief Run software component
     void Run();
+
+    /// @brief Task software component
+    void TaskChangeDeepRacerFGState();
+
+    /// @brief Parse program argument to state type member
+    void ParseArgumentToState(int argc, char *argv[]);
  
 private:
     /// @brief Pool of port
@@ -61,6 +67,9 @@ private:
     
     /// @brief Instance of Port {SM.MachineFG}
     std::shared_ptr<sm::para::port::MachineFG> m_MachineFG;
+
+    /// @brief Starting state field type
+    ara::sm::deepracerfg::skeleton::fields::Trigger::FieldType m_stateType;
 };
  
 } /// namespace para

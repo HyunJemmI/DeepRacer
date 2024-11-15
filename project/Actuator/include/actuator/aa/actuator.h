@@ -60,6 +60,7 @@ private:
     void ServoCalibration(int cal_type, int servo_min, int servo_mid, int servo_max, int servo_polarity);
 
     void MotorCalibration(int cal_type, int motor_min, int motor_mid, int motor_max, int motor_polarity);
+    void Test();
 
 private:
     bool m_running;

@@ -99,9 +99,24 @@ void Actuator::Run()
     
     m_running = true;
 
-    m_workers.Async([this] { TaskReceiveCEventCyclic(); });
+    // m_workers.Async([this] { TaskReceiveCEventCyclic(); });
+    m_workers.Async([this] { Test(); });
     
     m_workers.Wait();
+}
+
+void Actuator::Test()
+{
+    while(m_running){
+        servoMgr.servoSubscriber(1, 0); 
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        servoMgr.servoSubscriber(0.5, 0); 
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        servoMgr.servoSubscriber(0, -1); 
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        servoMgr.servoSubscriber(0, 1);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+    }
 }
 
 void Actuator::TaskReceiveCEventCyclic()

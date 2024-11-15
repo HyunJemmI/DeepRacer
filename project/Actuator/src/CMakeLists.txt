@@ -3,6 +3,9 @@
 # Copyright(c) 2024 by PopcornSAR Co.,Ltd. All rights reserved.
 # ============================================================================
  
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lstdc++fs")
 add_executable(${PARA_APP_NAME})
  
 # ============================================================================
@@ -21,11 +24,24 @@ target_include_directories(${PARA_APP_NAME}
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
-                      pthread)
+                      pthread
+                      stdc++fs)
+
+target_compile_options(${PARA_APP_NAME} 
+                        PRIVATE 
+                        -lstdc++fs)
+
+
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE
                actuator/aa/port/controldata.cpp
                actuator/aa/actuator.cpp
                main.cpp
+               bios_version.cpp 
+               led_mgr.cpp 
+               pwm.cpp 
+               servo_mgr.cpp 
+               utility.cpp 
+               jsoncpp.cpp
 )

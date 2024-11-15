@@ -9,8 +9,11 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(InferenceEngine_DIR /opt/intel/openvino_2021/deployment_tools/inference_engine/share)
-find_package(InferenceEngine REQUIRED)
+# OpenVINO 설치 경로
+set(OpenVINO_DIR "/opt/intel/openvino_2021")
+
+# OpenVINO 라이브러리 찾기
+find_package(OpenVINO REQUIRED)
  
 # ============================================================================
 # This setting is required for binary targets.
@@ -31,13 +34,12 @@ target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
                       pthread
                       ${OpenCV_LIBS}
-                      ${InferenceEngine_LIBRARIES})
+                      openvino::runtime)
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE
                calc/aa/port/controldata.cpp
                calc/aa/port/rawdata.cpp
                calc/aa/calc.cpp
-               calc/aa/inference_engine_wrapper.cpp
                main.cpp
 )

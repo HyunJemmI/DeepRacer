@@ -19,6 +19,8 @@
 #define SERVER_IP "192.168.170.105" // 로컬 PC public IP
 #define PORT 15001
 
+using json = nlohmann::json; //JSON 파싱을 위한 라이브러리. sudo apt install nlohmann-json3-dev
+
 namespace calc
 {
 namespace aa
@@ -32,6 +34,8 @@ Calc::Calc()
     , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
     , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
     , m_maxSpeed(1.0f)
+    , m_a(0.0f) // throttle mapping params
+    , m_b(0.0f) // throttle mapping params
 {
 }
 
@@ -233,7 +237,7 @@ void Calc::SocketCommunication()
     }
 }
 
-float Calc::mapsteering(float input_value)
+float Calc::mapSteering(float input_value)
 {
     float output = std::max(-1.0f, std::min(1.0f, input_value));
     return output;
@@ -242,14 +246,18 @@ float Calc::mapsteering(float input_value)
 // mapping
 float Calc::mapThrottle(float input_value)
 {
-    float input = abs(input_value);
-    // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
-    float output = -0.833333f * input * input + 1.833333f * input;
-    
+    float input = std::max(0.0f, std::min(1.0f, input_value));
+    // 이차 함수에 따라 스로틀 값을 매핑 (y = a * x^2 + b * x)
+    float output = m_a * input * input + m_b * input;
+
     // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
     output = std::max(0.0f, std::min(1.0f, output));
-    
+
     return output;
+}
+
+float Calc::mapValueLinearly(float x, float a, float b, float c, float d) {
+    return c + (x - a) * (d - c) / (b - a);
 }
 
 // 수신된 float 값 처리 함수
@@ -303,7 +311,43 @@ void Calc::CloseSocket()
     }
 }
 
+//coefficient 계산
+void Calc::CalculateCoefficients()
+{
+    m_logger.LogInfo() << "Calc::CalculateCoefficients - Enter";
 
+    // JSON 파일 경로
+    std::string filePath = "/home/deepracer/carina/project/Calc/include/calc/aa/json/model_metadata.json";
+
+    // JSON 객체
+    json model_metadata;
+
+    // JSON 파일 읽기
+    try {
+        std::ifstream file(filePath);
+        if (!file.is_open()) {
+            m_logger.LogInfo() << "Error: Unable to open file: ";
+            return;
+        }
+        file >> model_metadata;
+    } catch (const std::exception& e) {
+            m_logger.LogInfo() << "Error: Failed to parse JSON file. ";
+            return;
+    }
+
+    // action_space에서 speed.high 값 가져오기
+    try {
+        m_maxSpeed = model_metadata["action_space"]["speed"]["high"];
+    } catch (const std::exception& e) {
+        m_logger.LogInfo() << "Error: Failed to retrieve 'speed.high' value. ";
+        return;
+    }
+
+    m_a = (-1.2f) / (m_maxSpeed * m_maxSpeed); // a 계산
+    m_b = 2.2f / m_maxSpeed; // b 계산
+
+    m_logger.LogInfo() << "Calc::Calculate Mapping Coefficients - max_Speed : " << m_maxSpeed << "Coefficients calculated: a = " << m_a << ", b = " << m_b;
+}
 
 } /// namespace aa
 } /// namespace calc

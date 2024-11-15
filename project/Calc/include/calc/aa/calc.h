@@ -69,14 +69,18 @@ private:
     void ProcessReceivedFloats(float value1, float value2); // Process received float values
     void CloseSocket();                                     // Close the socket
     
-    float mapsteering(float input_value);
+    float mapSteering(float input_value);
     float mapThrottle(float input_value);
+    float mapValueLinearly(float x, float a, float b, float c, float d);
+    void CalculateCoefficients();
 
 private:
     bool m_running;          // Flag to indicate if the component is running
     int m_socket_fd;         // Socket file descriptor for communication
     bool m_newDataAvailable; // Flag to indicate new data availability
     float m_maxSpeed;
+    float m_a; // throttle mapping params
+    float m_b; // throttle mapping params
 
     std::mutex m_dataMutex;           // Mutex for thread synchronization
     std::condition_variable m_dataCV; // Condition variable for thread synchronization

@@ -15,6 +15,8 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
+#include "inference_engine_wrapper.h"
+#include <iostream>
 
 namespace calc
 {
@@ -134,32 +136,21 @@ float Calc::mapThrottle(float input_value)
 }
 
 std::vector<float> Calc::dataProcess(std::vector<uint8_t> input_vector){
-    ov::Core core;
+    // 모델 경로 및 디바이스 설정
+    std::string modelPath = "/path/to/model.xml"; // 실제 경로로 변경
+    std::string deviceName = "CPU";
 
-    std::string model_path = "~/carina/project/Calc/src/calc/aa/model.xml";
-    auto model = core.read_model(model_path);
-    auto compiled_model = core.compile_model(model, "CPU");
+    // 추론 엔진 생성
+    InferenceEngineWrapper engine(modelPath, deviceName);
 
-    auto input_port = compiled_model.input();
-    auto output_port = compiled_model.output();
-
-    // 입력 데이터 형식 생성
-    ov::Tensor input_tensor(input_port.get_element_type(), input_port.get_shape(), input_vector.data);
+    // 입력 데이터 설정 (예: 임의 데이터)
+    engine.setInputData(input_vector);
 
     // 추론 실행
-    auto result = compiled_model.infer({{input_port, input_tensor}});
+    std::vector<float> results = engine.runInference();
 
-    // 출력 결과 가져오기
-    auto output_tensor = result.at(output_port);
-    float* output_data = output_tensor.data<float>();
-
-    // 조향각 및 속도 결과 계산
-    m_logger.LogInfo() << "Calc::dataProcess - {steering = " << output_data[0] << " , speed = " << output_data[1] << " }";
-
-    // 조향각 및 속도 결과 계산
-    std::vector<float> result = {steering, speed}
-
-    return result
+    // 결과 출력
+    return {results[0], results[1]}
 }
 
 } /// namespace aa

@@ -30,7 +30,7 @@ Actuator::Actuator()
  
 Actuator::~Actuator()
 {
-    servoMgr->servoSubscriber(0, 0); 
+    servoMgr.servoSubscriber(0, 0); 
 }
  
 bool Actuator::Initialize()
@@ -90,7 +90,7 @@ void Actuator::Terminate()
     
     m_running = false;
 
-    servoMgr->servoSubscriber(0, 0); 
+    servoMgr.servoSubscriber(0, 0); 
 
     m_ControlData->Terminate();
 }
@@ -124,7 +124,7 @@ void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::eve
         float cur_servo = sample[0];
         float cur_motor = sample[1];
         m_logger.LogInfo() << "Actuator::servoMgr->servoSubscriber before";
-        servoMgr->servoSubscriber(cur_motor, cur_servo);
+        servoMgr.servoSubscriber(cur_motor, cur_servo);
         m_logger.LogInfo() << "Actuator::servoMgr->servoSubscriber after";
     }
 }
@@ -132,42 +132,42 @@ void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::eve
 void Actuator::ServoCalibration(int cal_type, int servo_min, int servo_mid, int servo_max, int servo_polarity)
 {
     // Print current calibration value
-    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
     m_logger.LogInfo() << ("Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);
 
     // Set New calibration value
-    servoMgr->setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
+    servoMgr.setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
     
     // Print updated calibration value
-    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
     m_logger.LogInfo() << ("New Servo calibration value(-10): min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);
 
     // Recover calibration value
-    servoMgr->setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
+    servoMgr.setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
 
     // Print recovered calibration value
-    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
     m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
 }
 
 void Actuator::MotorCalibration(int cal_type, int motor_min, int motor_mid, int motor_max, int motor_polarity)
 {
     // Print current calibration value
-    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
     m_logger.LogInfo() << ("Current Motor calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
 
     // Set New calibration value
-    servoMgr->setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
+    servoMgr.setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
 
     // Print updated calibration value
-    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
     m_logger.LogInfo() << ("New Servo calibration value(-10): min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
 
     // Recover calibration value
-    servoMgr->setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
+    servoMgr.setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
 
     // Print recovered calibration value
-    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
     m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
 }
  

@@ -232,10 +232,29 @@ void Calc::SocketCommunication()
     }
 }
 
+float Calc::mapsteering(float input_value)
+{
+    float output = std::max(-1.0f, std::min(1.0f, input_value));
+    return output;
+}
+
+// mapping
+float Calc::mapThrottle(float input_value)
+{
+    float input = abs(input_value);
+    // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
+    float output = -0.133333f * input * input + 0.733333f * input;
+    
+    // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
+    output = std::max(0.0f, std::min(1.0f, output));
+    
+    return output;
+}
+
 // 수신된 float 값 처리 함수
 void Calc::ProcessReceivedFloats(float value1, float value2)
 {
-    deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = {value1, value2};
+    deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = {mapsteering(value1), mapThrottle(value2)};
     
     m_ControlData->WriteDataCEvent(sample);
 

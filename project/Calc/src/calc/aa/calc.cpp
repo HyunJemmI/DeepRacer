@@ -243,7 +243,7 @@ float Calc::mapThrottle(float input_value)
 {
     float input = abs(input_value);
     // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
-    float output = -0.133333f * input * input + 0.733333f * input;
+    float output = -0.833333f * input * input + 1.833333f * input;
     
     // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
     output = std::max(0.0f, std::min(1.0f, output));

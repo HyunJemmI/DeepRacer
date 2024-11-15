@@ -22,7 +22,7 @@
  
 #include "para/swc/port_pool.h"
  
-#include <openvino/openvino.hpp>
+#include <inference_engine.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
 

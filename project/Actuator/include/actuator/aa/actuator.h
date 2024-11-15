@@ -73,7 +73,7 @@ private:
     std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
 
     std::unique_ptr<PWM::ServoMgr> servoMgr;
-    std::unique_ptr<PWM::LedMgr>() ledMgr;
+    std::unique_ptr<PWM::LedMgr> ledMgr;
 };
 
 } /// namespace aa

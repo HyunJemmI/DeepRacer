@@ -114,7 +114,7 @@ void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::eve
     servoMgr->servoSubscriber(cur_motor, cur_servo);
 }
 
-void Actuator::ServoCalibration(const int cal_type, const int servo_min, const int servo_mid, const int servo_max, const int servo_polarity)
+void Actuator::ServoCalibration(int cal_type, int servo_min, int servo_mid, int servo_max, int servo_polarity)
 {
     // Print current calibration value
     servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
@@ -135,7 +135,7 @@ void Actuator::ServoCalibration(const int cal_type, const int servo_min, const i
     m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
 }
 
-void Actuator::MotorCalibration(const int cal_type = 1, const int motor_min, const int motor_mid, const int motor_max, const int motor_polarity)
+void Actuator::MotorCalibration(int cal_type = 1, int motor_min, int motor_mid, int motor_max, int motor_polarity)
 {
     // Print current calibration value
     servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);

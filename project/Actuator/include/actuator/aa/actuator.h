@@ -72,8 +72,8 @@ private:
     /// @brief Instance of Port {Actuator.ControlData}
     std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
 
-    std::unique_ptr<PWM::ServoMgr> servoMgr;
-    std::unique_ptr<PWM::LedMgr> ledMgr;
+    PWM::ServoMgr servoMgr;
+    PWM::LedMgr ledMgr;
 };
 
 } /// namespace aa

@@ -41,9 +41,9 @@ bool Actuator::Initialize()
     
     m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
     
-    servoMgr = std::unique_ptr<PWM::ServoMgr>();
+    servoMgr = std::unique_ptr<PWM::ServoMgr>;
     m_logger.LogInfo() << "Actuator::servoMgr";
-    ledMgr = std::unique_ptr<PWM::LedMgr>();
+    ledMgr = std::unique_ptr<PWM::LedMgr>;
     m_logger.LogInfo() << "Actuator::ledMgr";
     
     // {

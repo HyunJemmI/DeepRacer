@@ -7,7 +7,7 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_DIR "/opt/intel/openvino_2021.1.110") # OpenVINO 설치 경로를 설정
+set(OpenVINO_DIR "/opt/intel/openvino_2021/deployment_tools/inference_engine/share")
 find_package(InferenceEngine REQUIRED)
  
 # ============================================================================
@@ -23,8 +23,7 @@ Para_Target(${PARA_APP_NAME}
 target_include_directories(${PARA_APP_NAME}
                            PRIVATE
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           ${OpenCV_INCLUDE_DIRS}
-                           ${OpenVINO_INCLUDE_DIRS})
+                           ${OpenCV_INCLUDE_DIRS})
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
@@ -37,5 +36,6 @@ target_sources(${PARA_APP_NAME}
                calc/aa/port/controldata.cpp
                calc/aa/port/rawdata.cpp
                calc/aa/calc.cpp
+               calc/aa/inference_engine_wrapper.cpp
                main.cpp
 )

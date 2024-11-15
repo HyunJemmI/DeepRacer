@@ -28,48 +28,55 @@
 
 namespace actuator
 {
-    namespace aa
-    {
+namespace aa
+{
 
-        class Actuator
-        {
-        public:
-            /// @brief Constructor
-            Actuator();
+class Actuator
+{
+public:
+    /// @brief Constructor
+    Actuator();
 
-            /// @brief Destructor
-            ~Actuator();
+    /// @brief Destructor
+    ~Actuator();
 
-            /// @brief Initialize software component
-            bool Initialize();
+    /// @brief Initialize software component
+    bool Initialize();
 
-            /// @brief Start software component
-            void Start();
+    /// @brief Start software component
+    void Start();
 
-            /// @brief Terminate software component
-            void Terminate();
+    /// @brief Terminate software component
+    void Terminate();
 
-        private:
-            /// @brief Run software component
-            void Run();
+private:
+    /// @brief Run software component
+    void Run();
 
-            void TaskReceiveCEventCyclic();
+    void TaskReceiveCEventCyclic();
 
-            void OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample);
+    void OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample);
 
-        private:
-            bool m_running;
-            /// @brief Pool of port
-            ::para::swc::PortPool m_workers;
+    void ServoCalibration(const int cal_type, const int servo_min, const int servo_mid, const int servo_max, const int servo_polarity);
 
-            /// @brief Logger for software component
-            ara::log::Logger &m_logger;
+    void MotorCalibration(const int cal_type = 1, const int motor_min, const int motor_mid, const int motor_max, const int motor_polarity);
 
-            /// @brief Instance of Port {Actuator.ControlData}
-            std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
-        };
+private:
+    bool m_running;
+    /// @brief Pool of port
+    ::para::swc::PortPool m_workers;
 
-    } /// namespace aa
+    /// @brief Logger for software component
+    ara::log::Logger &m_logger;
+
+    /// @brief Instance of Port {Actuator.ControlData}
+    std::shared_ptr<actuator::aa::port::ControlData> m_ControlData;
+
+    std::unique_ptr<PWM::ServoMgr> servoMgr;
+    std::unique_ptr<PWM::LedMgr>() ledMgr;
+};
+
+} /// namespace aa
 } /// namespace actuator
 
 #endif /// PARA_AA_GEN_SOFTWARE_COMPONENT_ACTUATOR_AA_H

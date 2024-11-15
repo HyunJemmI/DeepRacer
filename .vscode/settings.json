@@ -2,7 +2,7 @@
   "cmake.ignoreCMakeListsMissing": true,
   "cmake.configureOnOpen": false,
   "cmake.configureOnEdit": false,
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "files.associations": {
     "cctype": "cpp",
     "clocale": "cpp",
@@ -65,6 +65,12 @@
     "typeindex": "cpp",
     "typeinfo": "cpp",
     "variant": "cpp",
-    "bit": "cpp"
+    "bit": "cpp",
+    "strstream": "cpp",
+    "codecvt": "cpp",
+    "unordered_set": "cpp",
+    "filesystem": "cpp",
+    "cfenv": "cpp",
+    "valarray": "cpp"
   }
 }

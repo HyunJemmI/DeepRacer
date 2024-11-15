@@ -30,6 +30,7 @@ Actuator::Actuator()
  
 Actuator::~Actuator()
 {
+    servoMgr->servoSubscriber(0, 0); 
 }
  
 bool Actuator::Initialize()
@@ -40,6 +41,26 @@ bool Actuator::Initialize()
     
     m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
     
+    servoMgr = std::unique_ptr<PWM::ServoMgr>();
+    ledMgr = std::unique_ptr<PWM::LedMgr>();
+
+    {
+        int cal_type = 0;
+        int servo_min;
+        int servo_mid;
+        int servo_max;
+        int servo_polarity;
+        ServoCalibration(cal_type, servo_min, servo_mid, servo_max, servo_polarity);
+    }
+
+    {
+        int cal_type = 1;
+        int motor_min;
+        int motor_mid;
+        int motor_max;
+        int motor_polarity; 
+        MotorCalibration(cal_type, motor_min, motor_mid, motor_max, motor_polarity);
+    }
     return init;
 }
  
@@ -58,6 +79,8 @@ void Actuator::Terminate()
     m_logger.LogVerbose() << "Actuator::Terminate";
     
     m_running = false;
+
+    servoMgr->servoSubscriber(0, 0); 
 
     m_ControlData->Terminate();
 }
@@ -85,6 +108,52 @@ void Actuator::TaskReceiveCEventCyclic()
 void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
 {
     m_logger.LogInfo() << "Actuator::OnReceiveCEvent - data = {" << sample[0] << ", " << sample[1] << "}";
+
+    float cur_motor = sample[0];
+    float cur_servo = sample[1];
+    servoMgr->servoSubscriber(cur_motor, cur_servo);
+}
+
+void Actuator::ServoCalibration(const int cal_type, const int servo_min, const int servo_mid, const int servo_max, const int servo_polarity)
+{
+    // Print current calibration value
+    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    m_logger.LogInfo() << ("Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);
+
+    // Set New calibration value
+    servoMgr->setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
+    
+    // Print updated calibration value
+    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    m_logger.LogInfo() << ("New Servo calibration value(-10): min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);
+
+    // Recover calibration value
+    servoMgr->setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
+
+    // Print recovered calibration value
+    servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+    m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
+}
+
+void Actuator::MotorCalibration(const int cal_type = 1, const int motor_min, const int motor_mid, const int motor_max, const int motor_polarity)
+{
+    // Print current calibration value
+    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    m_logger.LogInfo() << ("Current Motor calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
+
+    // Set New calibration value
+    servoMgr->setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
+
+    // Print updated calibration value
+    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    m_logger.LogInfo() << ("New Servo calibration value(-10): min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
+
+    // Recover calibration value
+    servoMgr->setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
+
+    // Print recovered calibration value
+    servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+    m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
 }
  
 } /// namespace aa

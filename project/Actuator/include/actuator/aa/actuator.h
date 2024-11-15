@@ -57,9 +57,9 @@ private:
 
     void OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample);
 
-    void ServoCalibration(const int cal_type, const int servo_min, const int servo_mid, const int servo_max, const int servo_polarity);
+    void ServoCalibration(int cal_type, int servo_min, int servo_mid, int servo_max, int servo_polarity);
 
-    void MotorCalibration(const int cal_type = 1, const int motor_min, const int motor_mid, const int motor_max, const int motor_polarity);
+    void MotorCalibration(int cal_type, int motor_min, int motor_mid, int motor_max, int motor_polarity);
 
 private:
     bool m_running;

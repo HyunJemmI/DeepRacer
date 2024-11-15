@@ -135,7 +135,7 @@ void Actuator::ServoCalibration(int cal_type, int servo_min, int servo_mid, int 
     m_logger.LogInfo() << ("Recovered Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
 }
 
-void Actuator::MotorCalibration(int cal_type = 1, int motor_min, int motor_mid, int motor_max, int motor_polarity)
+void Actuator::MotorCalibration(int cal_type, int motor_min, int motor_mid, int motor_max, int motor_polarity)
 {
     // Print current calibration value
     servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);

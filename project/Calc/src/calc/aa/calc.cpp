@@ -245,9 +245,9 @@ void Calc::ProcessReceivedFloats(float value1, float value2)
     m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << values[0] << ", " << values[1] << " }";
 }
 
-float mapsteering(float input)
+float mapsteering(float input_value)
 {
-    float output = std::max(-1.0f, std::min(1.0f, output));
+    float output = std::max(-1.0f, std::min(1.0f, input_value));
     return output;
 }
 

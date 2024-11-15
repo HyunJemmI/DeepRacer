@@ -16,8 +16,8 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
-#define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
-#define PORT 15001
+// #define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
+// #define PORT 15001
 
 namespace calc
 {
@@ -27,16 +27,16 @@ namespace aa
 // 생성자: 클래스 멤버 초기화
 Calc::Calc()
     : m_logger(ara::log::CreateLogger("CALC", "SWC", ara::log::LogLevel::kVerbose))
-    , m_workers(4)
+    , m_workers(3)
     , m_running(false)
-    , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
-    , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
+    // , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
+    // , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
 {
 }
 
 Calc::~Calc()
 {
-    CloseSocket();
+    // CloseSocket();
 }
 
 // Client -> Server 연결
@@ -47,30 +47,30 @@ bool Calc::Initialize()
     m_ControlData = std::make_shared<calc::aa::port::ControlData>();
     m_RawData = std::make_shared<calc::aa::port::RawData>();
 
-    if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        m_logger.LogError() << "Calc::Initialize - Socket creation failed";
-        return false;
-    }
+    // if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    // {
+    //     m_logger.LogError() << "Calc::Initialize - Socket creation failed";
+    //     return false;
+    // }
 
-    struct sockaddr_in server_address;
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(PORT);
+    // struct sockaddr_in server_address;
+    // server_address.sin_family = AF_INET;
+    // server_address.sin_port = htons(PORT);
 
-    if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
-    {
-        m_logger.LogError() << "Calc::Initialize - Invalid address/ Address not supported";
-        return false;
-    }
+    // if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+    // {
+    //     m_logger.LogError() << "Calc::Initialize - Invalid address/ Address not supported";
+    //     return false;
+    // }
 
-    if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-    {
-        m_logger.LogError() << "Calc::Initialize - Connection Failed";
-        return false;
-    }
+    // if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+    // {
+    //     m_logger.LogError() << "Calc::Initialize - Connection Failed";
+    //     return false;
+    // }
 
-    m_logger.LogInfo() << "Calc::Initialize - Connected to server successfully";
-    return true;
+    // m_logger.LogInfo() << "Calc::Initialize - Connected to server successfully";
+    // return true;
 }
 
 // 시작 함수: 컴포넌트 실행 시작
@@ -108,158 +108,179 @@ void Calc::Run()
     m_running = true;
 
     m_workers.Async([this]{ TaskReceiveREventCyclic(); });
-    m_workers.Async([this]{ SocketCommunication(); });
+    // m_workers.Async([this]{ SocketCommunication(); });
     m_workers.Async([this]{ m_ControlData->SendEventCEventCyclic(); });
     m_workers.Async([this]{ m_RawData->ReceiveFieldRFieldCyclic(); });
 
     m_workers.Wait();
 }
-
-// RawData 이벤트 수신 처리 함수
 void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
 {
-    std::vector<uint8_t> bufferCombined = sample;
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - Received data (float, float)";
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size() << " , buffer[10000] = "<< bufferCombined[10000];
+    if (sample.size() == 2) // Ensure the data size is correct
+    {
+        float value1 = static_cast<float>(sample[0]);
+        float value2 = static_cast<float>(sample[1]);
 
-    if (bufferCombined.size() == 38400){
-        {
-            std::lock_guard<std::mutex> lock(m_dataMutex);
-            m_latestRawData = bufferCombined;
-            m_newDataAvailable = true;
-        }
-        m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
+        deepracer::service::controldata::skeleton::events::CEvent::SampleType outputSample = {value1, value2};
+
+        m_ControlData->WriteDataCEvent(outputSample);
+
+        m_logger.LogInfo() << "Calc::OnReceiveREvent - Forwarded values = { " << value1 << ", " << value2 << " }";
+    }
+    else
+    {
+        m_logger.LogError() << "Calc::OnReceiveREvent - Received incorrect data size: " << sample.size();
     }
 }
 
-bool Calc::ReconnectToServer()
-{
-    CloseSocket();
+// RawData 이벤트 수신 처리 함수
+// void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample)
+// {
+    // std::vector<uint8_t> bufferCombined = sample;
+    // m_logger.LogInfo() << "Calc::OnReceiveREvent - Receive values";
 
-    if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        m_logger.LogError() << "Calc::ReconnectToServer - Socket creation failed during reconnection";
-        return false;
-    }
+    // m_logger.LogInfo() << "Calc::OnReceiveREvent - buffer size = " << bufferCombined.size() << " , buffer[10000] = "<< bufferCombined[10000];
 
-    struct sockaddr_in server_address;
-    server_address.sin_family = AF_INET;
-    server_address.sin_port = htons(PORT);
+    // if (bufferCombined.size() == 38400){
+    //     {
+    //         std::lock_guard<std::mutex> lock(m_dataMutex);
+    //         m_latestRawData = bufferCombined;
+    //         m_newDataAvailable = true;
+    //     }
+    //     m_dataCV.notify_one(); //  대기 중인 스레드 중 하나를 깨움
+    //}
+// }
 
-    if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
-    {
-        m_logger.LogError() << "Calc::ReconnectToServer - Invalid address/ Address not supported during reconnection";
-        return false;
-    }
+// bool Calc::ReconnectToServer()
+// {
+//     CloseSocket();
 
-    if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
-    {
-        m_logger.LogError() << "Calc::ReconnectToServer - Reconnection Failed";
-        return false;
-    }
+//     if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+//     {
+//         m_logger.LogError() << "Calc::ReconnectToServer - Socket creation failed during reconnection";
+//         return false;
+//     }
 
-    m_logger.LogInfo() << "Calc::ReconnectToServer - Reconnected to server successfully";
-    return true;
-}
+//     struct sockaddr_in server_address;
+//     server_address.sin_family = AF_INET;
+//     server_address.sin_port = htons(PORT);
 
-// 소켓 통신 처리 함수
-void Calc::SocketCommunication()
-{
-    while (m_running)
-    {
-        // inference로의 데이터 전송
-        std::vector<uint8_t> combinedData;
-        {
-            std::unique_lock<std::mutex> lock(m_dataMutex);
-            m_dataCV.wait(lock, [this] { return m_newDataAvailable || !m_running; });
+//     if (inet_pton(AF_INET, SERVER_IP, &server_address.sin_addr) <= 0)
+//     {
+//         m_logger.LogError() << "Calc::ReconnectToServer - Invalid address/ Address not supported during reconnection";
+//         return false;
+//     }
 
-            if (!m_running)
-                break;
+//     if (connect(m_socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+//     {
+//         m_logger.LogError() << "Calc::ReconnectToServer - Reconnection Failed";
+//         return false;
+//     }
 
-            combinedData = m_latestRawData;
-            m_newDataAvailable = false;
-        }
+//     m_logger.LogInfo() << "Calc::ReconnectToServer - Reconnected to server successfully";
+//     return true;
+// }
 
-        // 결합된 데이터 전송
-        ssize_t sent_bytes = send(m_socket_fd, combinedData.data(), combinedData.size(), 0);
+// // 소켓 통신 처리 함수
+// void Calc::SocketCommunication()
+// {
+//     while (m_running)
+//     {
+//         // inference로의 데이터 전송
+//         std::vector<uint8_t> combinedData;
+//         {
+//             std::unique_lock<std::mutex> lock(m_dataMutex);
+//             m_dataCV.wait(lock, [this] { return m_newDataAvailable || !m_running; });
 
-        if (sent_bytes != combinedData.size())
-        {
-            m_logger.LogError() << "Calc::SocketCommunication - Send failed: " << strerror(errno);
-            if (errno == EPIPE)
-            {
-                m_logger.LogError() << "Calc::SocketCommunication - Broken pipe detected. Attempting to reconnect...";
-                if (!ReconnectToServer())
-                {
-                    m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-                    break;
-                }
-            }
-            continue;
-        }
+//             if (!m_running)
+//                 break;
 
-        float32_t received_floats[2];
-        ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float32_t) * 2, 0);
+//             combinedData = m_latestRawData;
+//             m_newDataAvailable = false;
+//         }
 
-        if (bytes_received == sizeof(float) * 2)
-        {
-            m_logger.LogInfo() << "Calc::SocketCommunication - Received floats: " << received_floats[0] << ", " << received_floats[1];
-            ProcessReceivedFloats(received_floats[0], received_floats[1]);
-        }
-        else if (bytes_received == 0)
-        {
-            m_logger.LogError() << "Calc::SocketCommunication - Connection closed by server. Attempting to reconnect...";
-            if (!ReconnectToServer())
-            {
-                m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-                break;
-            }
-        }
-        else
-        {
-            m_logger.LogError() << "Calc::SocketCommunication - Receive failed: " << strerror(errno);
-            if (errno == ECONNRESET)
-            {
-                m_logger.LogError() << "Calc::SocketCommunication - Connection reset by peer. Attempting to reconnect...";
-                if (!ReconnectToServer())
-                {
-                    m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
-                    break;
-                }
-            }
-            continue;
-        }
-    }
-}
+//         // 결합된 데이터 전송
+//         ssize_t sent_bytes = send(m_socket_fd, combinedData.data(), combinedData.size(), 0);
 
-float Calc::mapsteering(float input_value)
-{
-    float output = std::max(-1.0f, std::min(1.0f, input_value));
-    return output;
-}
+//         if (sent_bytes != combinedData.size())
+//         {
+//             m_logger.LogError() << "Calc::SocketCommunication - Send failed: " << strerror(errno);
+//             if (errno == EPIPE)
+//             {
+//                 m_logger.LogError() << "Calc::SocketCommunication - Broken pipe detected. Attempting to reconnect...";
+//                 if (!ReconnectToServer())
+//                 {
+//                     m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
+//                     break;
+//                 }
+//             }
+//             continue;
+//         }
 
-// mapping
-float Calc::mapThrottle(float input_value)
-{
-    float input = abs(input_value);
-    // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
-    float output = -0.133333f * input * input + 0.733333f * input;
+//         float32_t received_floats[2];
+//         ssize_t bytes_received = recv(m_socket_fd, received_floats, sizeof(float32_t) * 2, 0);
+
+//         if (bytes_received == sizeof(float) * 2)
+//         {
+//             m_logger.LogInfo() << "Calc::SocketCommunication - Received floats: " << received_floats[0] << ", " << received_floats[1];
+//             ProcessReceivedFloats(received_floats[0], received_floats[1]);
+//         }
+//         else if (bytes_received == 0)
+//         {
+//             m_logger.LogError() << "Calc::SocketCommunication - Connection closed by server. Attempting to reconnect...";
+//             if (!ReconnectToServer())
+//             {
+//                 m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
+//                 break;
+//             }
+//         }
+//         else
+//         {
+//             m_logger.LogError() << "Calc::SocketCommunication - Receive failed: " << strerror(errno);
+//             if (errno == ECONNRESET)
+//             {
+//                 m_logger.LogError() << "Calc::SocketCommunication - Connection reset by peer. Attempting to reconnect...";
+//                 if (!ReconnectToServer())
+//                 {
+//                     m_logger.LogError() << "Calc::SocketCommunication - Reconnection failed. Exiting communication loop.";
+//                     break;
+//                 }
+//             }
+//             continue;
+//         }
+//     }
+// }
+
+// float Calc::mapsteering(float input_value)
+// {
+//     float output = std::max(-1.0f, std::min(1.0f, input_value));
+//     return output;
+// }
+
+// // mapping
+// float Calc::mapThrottle(float input_value)
+// {
+//     float input = abs(input_value);
+//     // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
+//     float output = -0.133333f * input * input + 0.733333f * input;
     
-    // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
-    output = std::max(0.0f, std::min(1.0f, output));
+//     // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
+//     output = std::max(0.0f, std::min(1.0f, output));
     
-    return output;
-}
+//     return output;
+// }
 
-// 수신된 float 값 처리 함수
-void Calc::ProcessReceivedFloats(float value1, float value2)
-{
-    deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = {mapsteering(value1), mapThrottle(value2)};
+// // 수신된 float 값 처리 함수
+// void Calc::ProcessReceivedFloats(float value1, float value2)
+// {
+//     deepracer::service::controldata::skeleton::events::CEvent::SampleType sample = {mapsteering(value1), mapThrottle(value2)};
     
-    m_ControlData->WriteDataCEvent(sample);
+//     m_ControlData->WriteDataCEvent(sample);
 
-    m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << sample[0] << ", " << sample[1] << " }";
-}
+//     m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << sample[0] << ", " << sample[1] << " }";
+// }
 
 // RawData 이벤트 수신 작업 함수
 void Calc::TaskReceiveREventCyclic()
@@ -271,14 +292,14 @@ void Calc::TaskReceiveREventCyclic()
     m_RawData->ReceiveEventREventCyclic();
 }
 
-void Calc::CloseSocket()
-{
-    if (m_socket_fd != -1)
-    {
-        close(m_socket_fd);
-        m_socket_fd = -1;
-    }
-}
+// void Calc::CloseSocket()
+// {
+//     if (m_socket_fd != -1)
+//     {
+//         close(m_socket_fd);
+//         m_socket_fd = -1;
+//     }
+// }
 
 } /// namespace aa
 } /// namespace calc

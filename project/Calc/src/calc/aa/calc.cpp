@@ -137,7 +137,7 @@ float Calc::mapThrottle(float input_value)
 
 std::vector<float> Calc::dataProcess(std::vector<uint8_t> input_vector){
     // 모델 경로 및 디바이스 설정
-    std::string modelPath = "/path/to/model.xml"; // 실제 경로로 변경
+    std::string modelPath = "./model.xml"; // 실제 경로로 변경
     std::string deviceName = "CPU";
 
     // 추론 엔진 생성

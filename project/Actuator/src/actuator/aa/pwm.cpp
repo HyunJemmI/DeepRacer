@@ -1,4 +1,4 @@
-#include "pwm.hpp"
+#include "actuator/aa/pwm.hpp"
 
 namespace PWM {
     /// Max size of the character buffer used to concat the file paths.

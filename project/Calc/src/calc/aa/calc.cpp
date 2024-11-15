@@ -17,7 +17,7 @@
 #include "calc/aa/calc.h"
 #include "nlohmann/json.hpp"
 
-#define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
+#define SERVER_IP "192.168.170.105" // EC2 인스턴스의 public IP
 #define PORT 15001
 
 using json = nlohmann::json; //JSON 파싱을 위한 라이브러리. sudo apt install nlohmann-json3-dev
@@ -52,6 +52,8 @@ bool Calc::Initialize()
 
     m_ControlData = std::make_shared<calc::aa::port::ControlData>();
     m_RawData = std::make_shared<calc::aa::port::RawData>();
+
+    Calc::CalculateCoefficients();
 
     if ((m_socket_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
@@ -295,8 +297,10 @@ void Calc::CloseSocket()
 //coefficient 계산
 void Calc::CalculateCoefficients()
 {
+    m_logger.LogInfo() << "Calc::CalculateCoefficients - Enter";
+
     // JSON 파일 경로
-    std::string filePath = "~/carina/project/Calc/include/calc/aa/json/model_metadata.json";
+    std::string filePath = "/home/deepracer/carina/project/Calc/include/calc/aa/json/model_metadata.json";
 
     // JSON 객체
     json model_metadata;
@@ -305,12 +309,12 @@ void Calc::CalculateCoefficients()
     try {
         std::ifstream file(filePath);
         if (!file.is_open()) {
-            std::cerr << "Error: Unable to open file: " << filePath << std::endl;
+            m_logger.LogInfo() << "Error: Unable to open file: ";
             return;
         }
         file >> model_metadata;
     } catch (const std::exception& e) {
-            std::cerr << "Error: Failed to parse JSON file. " << e.what() << std::endl;
+            m_logger.LogInfo() << "Error: Failed to parse JSON file. ";
             return;
     }
 
@@ -318,7 +322,7 @@ void Calc::CalculateCoefficients()
     try {
         m_maxSpeed = model_metadata["action_space"]["speed"]["high"];
     } catch (const std::exception& e) {
-        std::cerr << "Error: Failed to retrieve 'speed.high' value. " << e.what() << std::endl;
+        m_logger.LogInfo() << "Error: Failed to retrieve 'speed.high' value. ";
         return;
     }
 

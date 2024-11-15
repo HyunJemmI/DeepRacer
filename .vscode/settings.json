@@ -66,5 +66,6 @@
     "typeinfo": "cpp",
     "variant": "cpp",
     "bit": "cpp"
-  }
+  },
+  "C_Cpp_Runner.msvcBatchPath": ""
 }

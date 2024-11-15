@@ -68,6 +68,9 @@ private:
     void SocketCommunication();                             // Handle socket communication
     void ProcessReceivedFloats(float value1, float value2); // Process received float values
     void CloseSocket();                                     // Close the socket
+    
+    float mapsteering(float input_value);
+    float mapThrottle(float input_value);
 
 private:
     bool m_running;          // Flag to indicate if the component is running

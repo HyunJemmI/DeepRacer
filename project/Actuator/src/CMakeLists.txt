@@ -31,17 +31,16 @@ target_compile_options(${PARA_APP_NAME}
                         PRIVATE 
                         -lstdc++fs)
 
-
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE
                actuator/aa/port/controldata.cpp
                actuator/aa/actuator.cpp
+               actuator/aa/bios_version.cpp 
+               actuator/aa/led_mgr.cpp 
+               actuator/aa/pwm.cpp 
+               actuator/aa/servo_mgr.cpp 
+               actuator/aa/utility.cpp 
+               actuator/aa/jsoncpp.cpp
                main.cpp
-               bios_version.cpp 
-               led_mgr.cpp 
-               pwm.cpp 
-               servo_mgr.cpp 
-               utility.cpp 
-               jsoncpp.cpp
 )

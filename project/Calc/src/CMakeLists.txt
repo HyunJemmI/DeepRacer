@@ -6,6 +6,7 @@
 add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
+find_package(OpenVINO REQUIRED)
  
 # ============================================================================
 # This setting is required for binary targets.
@@ -25,7 +26,8 @@ target_include_directories(${PARA_APP_NAME}
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
                       pthread
-                      ${OpenCV_LIBS})
+                      ${OpenCV_LIBS}
+                      openvino::runtime)
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE

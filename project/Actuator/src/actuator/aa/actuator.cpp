@@ -42,7 +42,10 @@ bool Actuator::Initialize()
     m_ControlData = std::make_shared<actuator::aa::port::ControlData>();
     
     servoMgr = std::unique_ptr<PWM::ServoMgr>();
+    m_logger.LogInfo() << "Actuator::servoMgr";
     ledMgr = std::unique_ptr<PWM::LedMgr>();
+    m_logger.LogInfo() << "Actuator::ledMgr";
+    
 
     {
         int cal_type = 0;
@@ -52,6 +55,7 @@ bool Actuator::Initialize()
         int servo_polarity;
         ServoCalibration(cal_type, servo_min, servo_mid, servo_max, servo_polarity);
     }
+    m_logger.LogInfo() << "Actuator::ServoCalibration";
 
     {
         int cal_type = 1;
@@ -61,6 +65,7 @@ bool Actuator::Initialize()
         int motor_polarity; 
         MotorCalibration(cal_type, motor_min, motor_mid, motor_max, motor_polarity);
     }
+    m_logger.LogInfo() << "Actuator::MotorCalibration";
     return init;
 }
  

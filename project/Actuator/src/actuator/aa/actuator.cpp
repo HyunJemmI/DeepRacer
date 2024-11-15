@@ -26,14 +26,13 @@ namespace actuator
         Actuator::Actuator()
             : m_logger(ara::log::CreateLogger("ACTR", "SWC", ara::log::LogLevel::kVerbose)),
               m_workers(1), // m_workers.Async에 등록가능한 함수 갯수
-              servoMgr(std::make_unique<PWM::ServoMgr>()),
-              ledMgr(std::make_unique<PWM::LedMrg>()),
               m_running(false)
         {
         }
 
         Actuator::~Actuator()
         {
+            servoMgr.servoSubscriber(0, 0);
         }
 
         // Actuator Software Component의 초기화 함수.
@@ -76,8 +75,6 @@ namespace actuator
 
             // ControlData RPort 에 대한 Terminate() 함수를 호출한다.
             m_ControlData->Terminate();
-
-            servoMgr->servoSubscriber(0, 0);
         }
 
         // Actuator Software Component의 수행 함수
@@ -87,13 +84,13 @@ namespace actuator
 
             m_running = true;
 
-            testFunction();
+            // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
+            m_workers.Async([this]
+                            { TaskReceiveCEventCyclic(); });
+            //  m_workers.Async([this] { m_ControlData->ReceiveEventCEventCyclic(); });
 
-            // // 수행해야 할 작업에 대해 m_workers.Async() 호출을 통해 등록한다.
-            // m_workers.Async([this] { TaskReceiveCEventCyclic(); });
-
-            // // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
-            // m_workers.Wait();
+            // 위의 Async로 등록된 함수들이 모두 리턴될때까지 기다린다.
+            m_workers.Wait();
         }
 
         // ControlData CEvent의 Cyclic 수신처리에 대한 수행
@@ -115,12 +112,12 @@ namespace actuator
             // 모터 제어 로직
             while (m_running)
             {
-                servoMgr->servoSubscriber(cur_motor, cur_servo);
+                servoMgr.servoSubscriber(cur_motor, cur_servo);
 
                 // 로그를 통해 동작 상태를 확인합니다.
                 m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;
             }
-            servoMgr->servoSubscriber(0, 0);
+            servoMgr.servoSubscriber(0, 0);
         }
 
         // ControlData CEvent를 받았을시의 처리 함수
@@ -128,16 +125,16 @@ namespace actuator
         {
             m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
 
-            // sample이 unsigned int 타입이므로, 적절히 변환해야 합니다.
+            // sample이
             // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
-            float cur_motor = static_cast<float>((sample >> 16) & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
-            float cur_servo = static_cast<float>(sample & 0xFFFF) / 65535.0f * 2.0f - 1.0f;
-
-            // 모터 제어 로직
-            servoMgr->servoSubscriber(cur_motor, cur_servo);
+            float cur_motor = sample[0];
+            float cur_servo = sample[1];
 
             // 로그를 통해 동작 상태를 확인합니다.
             m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;
+
+            // 모터 제어 로직
+            servoMgr.servoSubscriber(cur_motor, cur_servo);
         }
 
         void Actuator::testServoCalibration()
@@ -146,22 +143,22 @@ namespace actuator
             int servo_min, servo_mid, servo_max, servo_polarity;
 
             // Print current calibration value
-            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
             m_logger.LogInfo() << "Current Servo calibration value: min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
 
-            // Set New calibration value
-            servoMgr->setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
+            // // Set New calibration value
+            // servoMgr.setCalibrationValue(cal_type, servo_min - 10, servo_mid - 10, servo_max - 10, servo_polarity == 1 ? -1 : 1);
 
-            // Print updated calibration value
-            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
-            m_logger.LogInfo() << "New Servo calibration value(-10): min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
+            // // Print updated calibration value
+            // servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            // m_logger.LogInfo() << "New Servo calibration value(-10): min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
 
-            // Recover calibration value
-            servoMgr->setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
+            // // Recover calibration value
+            // servoMgr.setCalibrationValue(cal_type, servo_min + 10, servo_mid + 10, servo_max + 10, servo_polarity == 1 ? -1 : 1);
 
-            // Print recovered calibration value
-            servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
-            m_logger.LogInfo() << "Recovered Current Servo calibration value: min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
+            // // Print recovered calibration value
+            // servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+            // m_logger.LogInfo() << "Recovered Current Servo calibration value: min: " << servo_min << ", mid: " << servo_mid << ", max: " << servo_max << ", polarity: " << servo_polarity;
         }
 
         void Actuator::testMotorCalibration()
@@ -170,22 +167,22 @@ namespace actuator
             int motor_min, motor_mid, motor_max, motor_polarity;
 
             // Print current calibration value
-            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
             m_logger.LogInfo() << "Current Motor calibration value: min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
 
-            // Set New calibration value
-            servoMgr->setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
+            // // Set New calibration value
+            // servoMgr.setCalibrationValue(cal_type, motor_min - 10, motor_mid - 10, motor_max - 10, motor_polarity == 1 ? -1 : 1);
 
-            // Print updated calibration value
-            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
-            m_logger.LogInfo() << "New Motor calibration value(-10): min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
+            // // Print updated calibration value
+            // servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            // m_logger.LogInfo() << "New Motor calibration value(-10): min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
 
-            // Recover calibration value
-            servoMgr->setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
+            // // Recover calibration value
+            // servoMgr.setCalibrationValue(cal_type, motor_min + 10, motor_mid + 10, motor_max + 10, motor_polarity == 1 ? -1 : 1);
 
-            // Print recovered calibration value
-            servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
-            m_logger.LogInfo() << "Recovered Current Motor calibration value: min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
+            // // Print recovered calibration value
+            // servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+            // m_logger.LogInfo() << "Recovered Current Motor calibration value: min: " << motor_min << ", mid: " << motor_mid << ", max: " << motor_max << ", polarity: " << motor_polarity;
         }
     } /// namespace aa
 } /// namespace actuator

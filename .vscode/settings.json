@@ -71,6 +71,7 @@
     "unordered_set": "cpp",
     "filesystem": "cpp",
     "cfenv": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "*.ipp": "cpp"
   }
 }

@@ -204,8 +204,8 @@ void Sensor::TaskGenerateREventValue()
 
         std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
         bufferCombined.reserve(bufferR.size() + bufferL.size());
-        bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
         bufferCombined.insert(bufferCombined.end(), bufferL.begin(), bufferL.end());
+        bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
 
         deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferCombined;
         // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.

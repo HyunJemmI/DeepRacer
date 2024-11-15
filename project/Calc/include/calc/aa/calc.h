@@ -22,18 +22,9 @@
  
 #include "para/swc/port_pool.h"
  
-#include <mutex>
-#include <condition_variable>
-#include <vector>
-#include <memory>
-#include <arpa/inet.h> // for socket communication
-#include <sys/socket.h>
-#include <opencv2/opencv.hpp> // for OpenCV
-#include <cstdint>
-#include <chrono>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
+#include <openvino/openvino.hpp>
+#include <opencv2/opencv.hpp>
+#include <iostream>
 
 namespace calc
 {
@@ -63,22 +54,14 @@ private:
     void TaskReceiveREventCyclic();
     void TaskReceiveNotifyRFieldCyclic();
     void OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REvent::SampleType &sample);
-
-    bool ReconnectToServer();                               // Reconnect to the server
-    void SocketCommunication();                             // Handle socket communication
-    void ProcessReceivedFloats(float value1, float value2); // Process received float values
-    void CloseSocket();                                     // Close the socket
     
     float mapsteering(float input_value);
     float mapThrottle(float input_value);
 
+    std::vector<float> dataProcess(std::vector<uint8_t> input_vector);
+
 private:
     bool m_running;          // Flag to indicate if the component is running
-    int m_socket_fd;         // Socket file descriptor for communication
-    bool m_newDataAvailable; // Flag to indicate new data availability
-
-    std::mutex m_dataMutex;           // Mutex for thread synchronization
-    std::condition_variable m_dataCV; // Condition variable for thread synchronization
 
     ::para::swc::PortPool m_workers; // Pool of port workers
     ara::log::Logger &m_logger;      // Logger for logging messages
@@ -86,7 +69,7 @@ private:
     std::shared_ptr<calc::aa::port::ControlData> m_ControlData; // ControlData port instance
     std::shared_ptr<calc::aa::port::RawData> m_RawData;         // RawData port instance
 
-    deepracer::service::rawdata::proxy::events::REvent::SampleType m_latestRawData; // Latest raw data received from the sensor
+
 };
  
 } /// namespace aa

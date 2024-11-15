@@ -9,7 +9,7 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_DIR /opt/intel/openvino_2021/deployment_tools/inference_engine/share)
+set(InferenceEngine_DIR /opt/intel/openvino_2021/deployment_tools/inference_engine/share)
 find_package(InferenceEngine REQUIRED)
  
 # ============================================================================
@@ -23,7 +23,7 @@ Para_Target(${PARA_APP_NAME}
 )
 # ============================================================================
 target_include_directories(${PARA_APP_NAME}
-                           PRIVATE
+                           PRIVATEkk
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${OpenCV_INCLUDE_DIRS}
                            ${InferenceEngine_INCLUDE_DIRS})

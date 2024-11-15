@@ -123,7 +123,9 @@ void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::eve
 
         float cur_servo = sample[0];
         float cur_motor = sample[1];
+        m_logger.LogInfo() << "Actuator::servoMgr->servoSubscriber before";
         servoMgr->servoSubscriber(cur_motor, cur_servo);
+        m_logger.LogInfo() << "Actuator::servoMgr->servoSubscriber after";
     }
 }
 

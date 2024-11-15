@@ -118,10 +118,13 @@ void Actuator::TaskReceiveCEventCyclic()
 void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
 {
     m_logger.LogInfo() << "Actuator::OnReceiveCEvent - data = {" << sample[0] << ", " << sample[1] << "}";
+    if ((sample[0] != 0.0f) && (sample[1] != 0.0f)){
+        
 
-    float cur_servo = sample[0];
-    float cur_motor = sample[1];
-    servoMgr->servoSubscriber(cur_motor, cur_servo);
+        float cur_servo = sample[0];
+        float cur_motor = sample[1];
+        servoMgr->servoSubscriber(cur_motor, cur_servo);
+    }
 }
 
 void Actuator::ServoCalibration(int cal_type, int servo_min, int servo_mid, int servo_max, int servo_polarity)

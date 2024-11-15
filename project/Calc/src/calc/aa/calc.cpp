@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
-#define SERVER_IP "34.233.119.231" // EC2 인스턴스의 public IP
+#define SERVER_IP "192.168.0.38" // EC2 인스턴스의 public IP
 #define PORT 15001
 
 namespace calc

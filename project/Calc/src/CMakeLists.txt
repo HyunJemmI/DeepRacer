@@ -7,7 +7,7 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_DIR "/opt/intel/openvino_2021/deployment_tools/inference_engine/share")
+set(OpenVINO_DIR /opt/intel/openvino_2021/deployment_tools/inference_engine/share)
 find_package(InferenceEngine REQUIRED)
  
 # ============================================================================

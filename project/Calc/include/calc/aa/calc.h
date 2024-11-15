@@ -69,8 +69,9 @@ private:
     void ProcessReceivedFloats(float value1, float value2); // Process received float values
     void CloseSocket();                                     // Close the socket
 
-    float mapsteering(float input_value);
+    float mapSteering(float input_value);
     float mapThrottle(float input_value);
+    float mapValueLinearly(float x, float a, float b, float c, float d);
     void CalculateCoefficients();
 
 private:

@@ -242,7 +242,7 @@ void Calc::SocketCommunication()
     }
 }
 
-float Calc::mapsteering(float input_value)
+float Calc::mapSteering(float input_value)
 {
     float output = std::max(-1.0f, std::min(1.0f, input_value));
     return output;
@@ -251,7 +251,7 @@ float Calc::mapsteering(float input_value)
 // mapping
 float Calc::mapThrottle(float input_value)
 {
-    float input = abs(input_value);
+    float input = std::max(0.0f, std::min(1.0f, input_value));
     // 이차 함수에 따라 스로틀 값을 매핑 (y = a * x^2 + b * x)
     float output = m_a * input * input + m_b * input;
 
@@ -259,6 +259,10 @@ float Calc::mapThrottle(float input_value)
     output = std::max(0.0f, std::min(1.0f, output));
 
     return output;
+}
+
+float Calc::mapValueLinearly(float x, float a, float b, float c, float d) {
+    return c + (x - a) * (d - c) / (b - a);
 }
 
 // 수신된 float 값 처리 함수

@@ -1,4 +1,4 @@
 /project/build
 *.pem
-/.vscode
+.vscode/
 /scripts

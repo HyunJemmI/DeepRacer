@@ -15,6 +15,7 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
+#include "nlohmann/json.hpp"
 
 #define SERVER_IP "192.168.170.105" // 로컬 PC public IP
 #define PORT 15001
@@ -263,7 +264,7 @@ float Calc::mapValueLinearly(float x, float a, float b, float c, float d) {
 // 수신된 float 값 처리 함수
 void Calc::ProcessReceivedFloats(float value1, float value2)
 {   
-    float steering = mapsteering(value1);
+    float steering = mapSteering(value1);
     float throttle = mapThrottle(value2);
 
     deepracer::service::controldata::skeleton::events::CEvent::SampleType values = {steering, throttle};
@@ -273,7 +274,7 @@ void Calc::ProcessReceivedFloats(float value1, float value2)
     m_logger.LogInfo() << "Calc::ProcessReceivedFloats - send values = { " << values[0] << ", " << values[1] << " }";
 }
 
-float mapsteering(float input_value)
+float mapSteering(float input_value)
 {
     float output = std::max(-1.0f, std::min(1.0f, input_value));
     return output;

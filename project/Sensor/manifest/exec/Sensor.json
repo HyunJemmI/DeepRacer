@@ -12,8 +12,8 @@
     	"policy" : "other",
     	"priority" : "0",
     	"program-argument" : "",
-    	"startup-timeout" : "5.0",
-    	"termination-timeout" : "5.0",
+    	"startup-timeout" : "7.0",
+    	"termination-timeout" : "7.0",
     	"termination-behavior" : "not-self-terminating",
     	"environment-variables" : [
     	]

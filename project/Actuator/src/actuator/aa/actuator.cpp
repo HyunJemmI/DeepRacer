@@ -44,31 +44,31 @@ bool Actuator::Initialize()
     m_logger.LogInfo() << "Actuator::servoMgr";
     m_logger.LogInfo() << "Actuator::ledMgr";
     
-    // {
-    //     int cal_type = 0;
-    //     int servo_min;
-    //     int servo_mid;
-    //     int servo_max;
-    //     int servo_polarity;
+    {
+        int cal_type = 0;
+        int servo_min;
+        int servo_mid;
+        int servo_max;
+        int servo_polarity;
         
-    //     // Print current calibration value
-    //     servoMgr->getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
-    //     m_logger.LogInfo() << ("Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
+        // Print current calibration value
+        servoMgr.getCalibrationValue(cal_type, &servo_min, &servo_mid, &servo_max, &servo_polarity);
+        m_logger.LogInfo() << ("Current Servo calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", servo_min, servo_mid, servo_max, servo_polarity);    
 
-    // }
-    // m_logger.LogInfo() << "Actuator::ServoCalibration";
+    }
+    m_logger.LogInfo() << "Actuator::ServoCalibration";
 
-    // {
-    //     int cal_type = 1;
-    //     int motor_min;
-    //     int motor_mid;
-    //     int motor_max;
-    //     int motor_polarity; 
-    //     // Print current calibration value
-    //     servoMgr->getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
-    //     m_logger.LogInfo() << ("Current Motor calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
-    // }
-    // m_logger.LogInfo() << "Actuator::MotorCalibration";
+    {
+        int cal_type = 1;
+        int motor_min;
+        int motor_mid;
+        int motor_max;
+        int motor_polarity; 
+        // Print current calibration value
+        servoMgr.getCalibrationValue(cal_type, &motor_min, &motor_mid, &motor_max, &motor_polarity);
+        m_logger.LogInfo() << ("Current Motor calibration value: min: %d, mid: %d, max: %d, polarity: %d\n", motor_min, motor_mid, motor_max, motor_polarity);
+    }
+    m_logger.LogInfo() << "Actuator::MotorCalibration";
     return init;
 }
  

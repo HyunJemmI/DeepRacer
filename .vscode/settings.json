@@ -2,7 +2,7 @@
   "cmake.ignoreCMakeListsMissing": true,
   "cmake.configureOnOpen": false,
   "cmake.configureOnEdit": false,
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "files.associations": {
     "cctype": "cpp",
     "clocale": "cpp",
@@ -68,4 +68,12 @@
     "bit": "cpp"
   },
   "C_Cpp_Runner.msvcBatchPath": ""
+    "bit": "cpp",
+    "strstream": "cpp",
+    "codecvt": "cpp",
+    "unordered_set": "cpp",
+    "filesystem": "cpp",
+    "cfenv": "cpp",
+    "valarray": "cpp"
+  }
 }

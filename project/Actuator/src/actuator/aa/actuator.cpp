@@ -101,34 +101,14 @@ namespace actuator
             m_ControlData->ReceiveEventCEventCyclic();
         }
 
-        // ControlData CEvent를 받았을시의 처리 함수(test)
-        void Actuator::testFunction()
-        {
-            m_logger.LogInfo() << "Actuator::testFunction";
-
-            float cur_motor = 0.5f; // throttle
-            float cur_servo = 0.5f; // steering
-
-            // 모터 제어 로직
-            while (m_running)
-            {
-                servoMgr.servoSubscriber(cur_motor, cur_servo);
-
-                // 로그를 통해 동작 상태를 확인합니다.
-                m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;
-            }
-            servoMgr.servoSubscriber(0, 0);
-        }
-
         // ControlData CEvent를 받았을시의 처리 함수
         void Actuator::OnReceiveCEvent(const deepracer::service::controldata::proxy::events::CEvent::SampleType &sample)
         {
             m_logger.LogInfo() << "Actuator::OnReceiveCEvent:" << sample;
 
             // sample이
-            // 예를 들어, 상위 16비트를 throttle로, 하위 16비트를 steering으로 사용할 수 있습니다.
-            float cur_motor = sample[0];
-            float cur_servo = sample[1];
+            float cur_servo = sample[0];
+            float cur_throttle = sample[1];
 
             // 로그를 통해 동작 상태를 확인합니다.
             m_logger.LogInfo() << "Actuator set - Throttle: " << cur_motor << ", Steering: " << cur_servo;

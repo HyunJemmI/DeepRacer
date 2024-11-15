@@ -9,7 +9,7 @@
     "endpoints": [
         {
             "connector": "wlo1",
-            "ip-address": "192.168.1.54"
+            "ip-address": "192.168.0.41"
         }
     ],
     "sd-endpoints": [

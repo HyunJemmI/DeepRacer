@@ -7,7 +7,7 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_DIR "/opt/intel/openvino_2021") # OpenVINO 설치 경로를 설정
+set(OpenVINO_DIR "/opt/intel/openvino_2021.1.110") # OpenVINO 설치 경로를 설정
 find_package(InferenceEngine REQUIRED)
  
 # ============================================================================

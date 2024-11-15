@@ -9,8 +9,7 @@ add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_DIR "/opt/intel/openvino_2021")
-find_package(OpenVINO REQUIRED)
+set(OpenVINO_PATH "/opt/intel/openvino_2021/deployment_tools")
  
 # ============================================================================
 # This setting is required for binary targets.
@@ -26,7 +25,8 @@ target_include_directories(${PARA_APP_NAME}
                            PRIVATEkk
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${OpenCV_INCLUDE_DIRS}
-                           ${OpenVINO_INCLUDE_DIRS})
+                           ${OpenVINO_PATH}/include
+                           ${OpenVINO_PATH}/include)
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE

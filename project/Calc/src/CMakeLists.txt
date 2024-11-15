@@ -25,8 +25,7 @@ Para_Target(${PARA_APP_NAME}
 target_include_directories(${PARA_APP_NAME}
                            PRIVATEkk
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
-                           ${OpenCV_INCLUDE_DIRS}
-                           ${InferenceEngine_INCLUDE_DIRS})
+                           ${OpenCV_INCLUDE_DIRS})
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE

@@ -76,6 +76,7 @@ private:
     bool m_running;          // Flag to indicate if the component is running
     int m_socket_fd;         // Socket file descriptor for communication
     bool m_newDataAvailable; // Flag to indicate new data availability
+    float m_maxSpeed;
 
     std::mutex m_dataMutex;           // Mutex for thread synchronization
     std::condition_variable m_dataCV; // Condition variable for thread synchronization

@@ -16,7 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
 
-#define SERVER_IP "192.168.0.38" // EC2 인스턴스의 public IP
+#define SERVER_IP "192.168.170.105" // 로컬 PC public IP
 #define PORT 15001
 
 namespace calc
@@ -31,6 +31,7 @@ Calc::Calc()
     , m_running(false)
     , m_socket_fd(-1) // 실제 통신에 사용되는 소켓
     , m_newDataAvailable(false) // 새로운 데이터 가용성 플래그
+    , m_maxSpeed(1.0f)
 {
 }
 

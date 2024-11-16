@@ -15,7 +15,7 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "calc/aa/calc.h"
-#include "inference_engine_wrapper.h"
+#include "calc/aa/inference_engine_wrapper.h"
 #include <iostream>
 
 namespace calc

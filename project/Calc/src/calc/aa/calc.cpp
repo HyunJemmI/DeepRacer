@@ -105,7 +105,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 
     std::vector<float> result = dataProcess(bufferCombined);
 
-    m_logger.LogInfo() << "Calc::OnReceiveREvent - Mapping Input = {" << result[0] << " , " << result[1] << "}"
+    m_logger.LogInfo() << "Calc::OnReceiveREvent - Mapping Input = {" << result[0] << " , " << result[1] << "}";
 
     float steering = mapsteering(result[0]);
     float throttle = mapThrottle(result[1]);
@@ -150,7 +150,7 @@ std::vector<float> Calc::dataProcess(std::vector<uint8_t> input_vector){
     std::vector<float> results = engine.runInference();
 
     // 결과 출력
-    return {results[0], results[1]}
+    return {results[0], results[1]};
 }
 
 } /// namespace aa

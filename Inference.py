@@ -47,7 +47,7 @@ try:
                     data.extend(packet)
 
                 if len(data) < BUFFER_SIZE:
-                    continue
+                    break
 
                 matrix_data = np.frombuffer(data, dtype=np.uint8).reshape(120, 160, 2)
 

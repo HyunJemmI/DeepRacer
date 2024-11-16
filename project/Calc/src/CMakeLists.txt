@@ -31,7 +31,7 @@ target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
                       pthread
                       ${OpenCV_LIBS}
-                      ${OpenVINO_PATH}/lib/intel64)
+                      ${OpenVINO_PATH}/lib/intel64/libinference_engine.so)
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE

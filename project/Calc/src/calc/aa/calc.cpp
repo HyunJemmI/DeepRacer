@@ -110,7 +110,7 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
     float steering = mapsteering(result[0]);
     float throttle = mapThrottle(result[1]);
 
-    deepracer::type::FloatArray result = {steering , throttle}
+    ara::core::Array<float,2> result = {steering , throttle};
     // ControlData 서비스의 CEvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
     m_ControlData->WriteDataCEvent(result);
     m_logger.LogInfo() << "m_ControlData::WriteDataCEvent({ " << steering << " , " << throttle << " })";

@@ -10,7 +10,7 @@ public:
     InferenceEngineWrapper(const std::string& modelPath, const std::string& deviceName);
     ~InferenceEngineWrapper();
 
-    void setInputData(const std::vector<float>& inputData);
+    void setInputData(const std::vector<uint8_t>& inputData);
     std::vector<float> runInference();
 
 private:

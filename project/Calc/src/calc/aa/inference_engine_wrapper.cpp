@@ -31,7 +31,7 @@ void InferenceEngineWrapper::loadModel() {
     inferRequest = executableNet.CreateInferRequest();
 }
 
-void InferenceEngineWrapper::setInputData(const std::vector<float>& inputData) {
+void InferenceEngineWrapper::setInputData(const std::vector<uint8_t>& inputData) {
     // 입력 Blob 생성
     auto inputBlob = inferRequest.GetBlob(inputInfo.begin()->first);
     auto data = inputBlob->buffer().as<float*>();

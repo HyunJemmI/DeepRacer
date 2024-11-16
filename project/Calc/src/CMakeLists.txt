@@ -3,13 +3,13 @@
 # Copyright(c) 2024 by PopcornSAR Co.,Ltd. All rights reserved.
 # ============================================================================
  
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.10)
 
 add_executable(${PARA_APP_NAME})
 set(OpenCV_DIR /usr/lib/x86_64-linux-gnu/cmake/opencv4)
 find_package(OpenCV REQUIRED)
 
-set(OpenVINO_PATH "/opt/intel/openvino_2021/deployment_tools")
+set(OpenVINO_PATH "/opt/intel/openvino_2021/deployment_tools/inference_engine")
  
 # ============================================================================
 # This setting is required for binary targets.
@@ -25,19 +25,19 @@ target_include_directories(${PARA_APP_NAME}
                            PRIVATEkk
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${OpenCV_INCLUDE_DIRS}
-                           ${OpenVINO_PATH}/include
-                           ${OpenVINO_PATH}/include)
+                           ${OpenVINO_PATH}/include)                          )
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE
                       pthread
                       ${OpenCV_LIBS}
-                      ${InferenceEngine_LIBRARIES})
+                      ${OpenVINO_PATH}/lib/intel64)
 # ============================================================================
 target_sources(${PARA_APP_NAME}
                PRIVATE
                calc/aa/port/controldata.cpp
                calc/aa/port/rawdata.cpp
                calc/aa/calc.cpp
+               calc/aa/inference_engine_wrapper.cpp
                main.cpp
 )

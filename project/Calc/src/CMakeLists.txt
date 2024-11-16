@@ -22,10 +22,10 @@ Para_Target(${PARA_APP_NAME}
 )
 # ============================================================================
 target_include_directories(${PARA_APP_NAME}
-                           PRIVATEkk
+                           PRIVATE
                            ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${OpenCV_INCLUDE_DIRS}
-                           ${OpenVINO_PATH}/include)                          )
+                           ${OpenVINO_PATH}/include)
 # ============================================================================
 target_link_libraries(${PARA_APP_NAME}
                       PRIVATE

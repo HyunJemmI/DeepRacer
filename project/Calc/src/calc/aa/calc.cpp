@@ -18,6 +18,25 @@
 #include "calc/aa/inference_engine_wrapper.h"
 #include <iostream>
 #include <array>
+#include <algorithm>
+#include <cmath>
+
+namespace
+{
+constexpr const char *kModelPath = "./model.xml";
+constexpr const char *kDeviceName = "CPU";
+constexpr float kMinModelOutput = -1.0f;
+constexpr float kMaxModelOutput = 1.0f;
+constexpr float kMinThrottle = 0.0f;
+constexpr float kMaxThrottle = 1.0f;
+constexpr float kThrottleQuadratic = -0.133333f;
+constexpr float kThrottleLinear = 0.733333f;
+
+float clampFloat(float value, float min_value, float max_value)
+{
+    return std::max(min_value, std::min(max_value, value));
+}
+}
 
 namespace calc
 {
@@ -45,6 +64,7 @@ bool Calc::Initialize()
 
     m_ControlData = std::make_shared<calc::aa::port::ControlData>();
     m_RawData = std::make_shared<calc::aa::port::RawData>();
+    m_inferenceEngine.reset(new InferenceEngineWrapper(kModelPath, kDeviceName));
 
     return init;
 }
@@ -119,38 +139,20 @@ void Calc::OnReceiveREvent(const deepracer::service::rawdata::proxy::events::REv
 
 float Calc::mapsteering(float input_value)
 {
-    float output = std::max(-1.0f, std::min(1.0f, input_value));
-    return output;
+    return clampFloat(input_value, kMinModelOutput, kMaxModelOutput);
 }
 
-// mapping
 float Calc::mapThrottle(float input_value)
 {
-    float input = abs(input_value);
-    // 이차 함수에 따라 스로틀 값을 매핑 (y = -0.133333x^2 + 0.733333x)
-    float output = -0.133333f * input * input + 0.733333f * input;
-    
-    // 출력 값이 0 ~ 1 범위 내에 있는지 확인하고 제한
-    output = std::max(0.0f, std::min(1.0f, output));
-    
-    return output;
+    float input = std::abs(input_value);
+    float output = kThrottleQuadratic * input * input + kThrottleLinear * input;
+    return clampFloat(output, kMinThrottle, kMaxThrottle);
 }
 
-std::vector<float> Calc::dataProcess(std::vector<uint8_t> input_vector){
-    // 모델 경로 및 디바이스 설정
-    std::string modelPath = "./model.xml"; // 실제 경로로 변경
-    std::string deviceName = "CPU";
-
-    // 추론 엔진 생성
-    InferenceEngineWrapper engine(modelPath, deviceName);
-
-    // 입력 데이터 설정 (예: 임의 데이터)
-    engine.setInputData(input_vector);
-
-    // 추론 실행
-    std::vector<float> results = engine.runInference();
-
-    // 결과 출력
+std::vector<float> Calc::dataProcess(const std::vector<uint8_t> &input_vector)
+{
+    m_inferenceEngine->setInputData(input_vector);
+    std::vector<float> results = m_inferenceEngine->runInference();
     return {results[0], results[1]};
 }
 

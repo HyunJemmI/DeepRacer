@@ -15,6 +15,20 @@
 /// INCLUSION HEADER FILES
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include "sensor/aa/sensor.h"
+
+namespace
+{
+constexpr int kRightCameraIndex = 0;
+constexpr int kLeftCameraIndex = 2;
+constexpr int kImageWidth = 160;
+constexpr int kImageHeight = 120;
+constexpr int kSingleImageBytes = kImageWidth * kImageHeight;
+constexpr int kStereoImageBytes = kSingleImageBytes * 2;
+constexpr int kTimestampBytes = sizeof(double);
+constexpr int kLidarSectorCount = 8;
+constexpr int kFrameIntervalMs = 100;
+constexpr size_t kUdpBufferSize = 65536;
+}
  
 namespace sensor
 {
@@ -47,23 +61,20 @@ bool Sensor::Initialize()
     
     m_RawData = std::make_shared<sensor::aa::port::RawData>();
     
-    // Camera 접근
-    capR.open(0);
-    capL.open(2);
+    capR.open(kRightCameraIndex);
+    capL.open(kLeftCameraIndex);
 
-    // 접근 여부 파악
     if (capR.isOpened() && capL.isOpened())
-    { // 카메라 접근 되면 카메라에서 데이터 받아온다.
+    {
         m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Open Stereo Camera Successfully";
 
-        // MJPEC 코덱 및 크기 설정
         capR.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-        capR.set(cv::CAP_PROP_FRAME_WIDTH, 160);
-        capR.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+        capR.set(cv::CAP_PROP_FRAME_WIDTH, kImageWidth);
+        capR.set(cv::CAP_PROP_FRAME_HEIGHT, kImageHeight);
 
         capL.set(cv::CAP_PROP_FOURCC, cv::VideoWriter::fourcc('M', 'J', 'P', 'G'));
-        capL.set(cv::CAP_PROP_FRAME_WIDTH, 160);
-        capL.set(cv::CAP_PROP_FRAME_HEIGHT, 120);
+        capL.set(cv::CAP_PROP_FRAME_WIDTH, kImageWidth);
+        capL.set(cv::CAP_PROP_FRAME_HEIGHT, kImageHeight);
 
         m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - Setting CODEC Successfully";
 
@@ -72,12 +83,11 @@ bool Sensor::Initialize()
         m_logger.LogInfo() << "Sensor::TaskGenerateREventValue - close UDP socket";
     }
     else
-    { // Simulation에서 센서 데이터 받아온다.
+    {
         m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Camera access failed";
         m_logger.LogInfo() << "Sensor - RUNNING ON SIMULATION";
         m_simulation = true;
 
-        // udp 통신 소켓 설정
         int opt = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
         {
@@ -85,7 +95,6 @@ bool Sensor::Initialize()
             m_running = false;
         }
 
-        // udp 통신 소켓 바인딩 (주소 할당)
         sockaddr_in addr;
         addr.sin_family = AF_INET;
         addr.sin_port = htons(udp_port);
@@ -135,16 +144,16 @@ void Sensor::Run()
 
 void Sensor::TaskGenerateREventValue()
 {
-    cv::Mat frameR;               // 카메라1 이미지 프레임
-    cv::Mat frameL;               // 카메라2 이미지 프레임
-    cv::Mat frameR_grayscaled;    // GrayScaled 처리된 프레임1
-    cv::Mat frameL_grayscaled;    // GrayScaled 처리된 프레임2
-    std::vector<uint8_t> bufferR; // 비트맵 Flatten vector1
-    std::vector<uint8_t> bufferL; // 비트맵 Flatten vector2
-    bufferR.reserve(19200);
-    bufferL.reserve(19200);
+    cv::Mat frameR;
+    cv::Mat frameL;
+    cv::Mat frameR_grayscaled;
+    cv::Mat frameL_grayscaled;
+    std::vector<uint8_t> bufferR;
+    std::vector<uint8_t> bufferL;
+    bufferR.reserve(kSingleImageBytes);
+    bufferL.reserve(kSingleImageBytes);
 
-    char buffer[65536]; // udp 통신 데이터 받을 버퍼
+    char buffer[kUdpBufferSize];
     sockaddr_in addr;
     socklen_t addr_len = sizeof(addr);
     
@@ -158,19 +167,12 @@ void Sensor::TaskGenerateREventValue()
                 try
                 {
                     double timestamp;
-                    std::memcpy(&timestamp, buffer, sizeof(double)); // Copy timestamp
+                    std::memcpy(&timestamp, buffer, kTimestampBytes);
 
-                    bufferL.assign(buffer + 8, buffer + 19208);     // Extract left image data
-                    bufferR.assign(buffer + 19208, buffer + 38408); // Extract right image data
-                    std::vector<float> lidar_data(8);               // Extract lidar data
-                    std::memcpy(lidar_data.data(), buffer + 38408, 8 * sizeof(float));
-
-                    // // Sensor::data_path에 데이터 저장
-                    // auto current_time = std::chrono::system_clock::now();
-                    // if (current_time - last_save_time >= save_interval) {
-                    //     save_data(timestamp, bufferL, bufferR, lidar_data);
-                    //     last_save_time = current_time;
-                    // }
+                    bufferL.assign(buffer + kTimestampBytes, buffer + kTimestampBytes + kSingleImageBytes);
+                    bufferR.assign(buffer + kTimestampBytes + kSingleImageBytes, buffer + kTimestampBytes + kStereoImageBytes);
+                    std::vector<float> lidar_data(kLidarSectorCount);
+                    std::memcpy(lidar_data.data(), buffer + kTimestampBytes + kStereoImageBytes, kLidarSectorCount * sizeof(float));
                 }
                 catch (const std::exception &e)
                 {
@@ -180,35 +182,29 @@ void Sensor::TaskGenerateREventValue()
         }
         else
         {
-            // 카메라 캡처
             capR >> frameR;
             capL >> frameL;
+            if (frameR.empty() || frameL.empty())
+            {
+                m_logger.LogVerbose() << "Sensor::TaskGenerateREventValue - Empty camera frame";
+                continue;
+            }
 
-            // GrayScale
             cv::cvtColor(frameR, frameR_grayscaled, cv::COLOR_BGR2GRAY);
             cv::cvtColor(frameL, frameL_grayscaled, cv::COLOR_BGR2GRAY);
 
-            // 19200 고정된 크기로 Flatten(imencode하면 벡터 사이즈 변환 가능...)
             bufferR.assign(frameR_grayscaled.datastart, frameR_grayscaled.dataend);
             bufferL.assign(frameL_grayscaled.datastart, frameL_grayscaled.dataend);
 
-            // cv::imshow("frameR_grayscaled", frameR_grayscaled);
-            // cv::imshow("frameL_grayscaled", frameL_grayscaled);
-            // // esc 누르면 끄기
-            // if (cv::waitKey(10) == 27)
-            // {
-            //     m_running = false;
-            // }
-            std::this_thread::sleep_for(std::chrono::milliseconds(100)); // fps
+            std::this_thread::sleep_for(std::chrono::milliseconds(kFrameIntervalMs));
         }
 
-        std::vector<uint8_t> bufferCombined; // Calc로 보낼 벡터
+        std::vector<uint8_t> bufferCombined;
         bufferCombined.reserve(bufferR.size() + bufferL.size());
         bufferCombined.insert(bufferCombined.end(), bufferL.begin(), bufferL.end());
         bufferCombined.insert(bufferCombined.end(), bufferR.begin(), bufferR.end());
 
         deepracer::service::rawdata::skeleton::events::REvent::SampleType settingSampleValue = bufferCombined;
-        // RawData 서비스의 REvent로 전송해야 할 값을 변경한다. 이 함수는 전송 타겟 값을 변경할 뿐 실제 전송은 다른 부분에서 진행된다.
         m_RawData->WriteDataREvent(settingSampleValue);
 
         m_logger.LogInfo() << "Sensor::Call RawData->WriteDataREvent size (R = " << bufferR.size() << " , L = " << bufferL.size() << ")";
@@ -244,12 +240,12 @@ void Sensor::save_camera_data(const std::vector<uint8_t> &img_bytes, double time
 {
     try
     {
-        if (img_bytes.size() != 160 * 120)
+        if (img_bytes.size() != kSingleImageBytes)
         {
             m_logger.LogVerbose() << "Sensor::save_camera_data - Warning: received image size does not match expected size";
             m_running = false;
         }
-        cv::Mat img(120, 160, CV_8UC1, const_cast<uint8_t *>(img_bytes.data()));
+        cv::Mat img(kImageHeight, kImageWidth, CV_8UC1, const_cast<uint8_t *>(img_bytes.data()));
         cv::imwrite(data_path + "/" + camera_name + "_" + std::to_string(timestamp) + ".png", img);
         m_logger.LogInfo() << "Sensor::save_camera_data - Camera data (" << camera_name.c_str() << ") saved";
     }

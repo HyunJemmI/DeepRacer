@@ -25,6 +25,9 @@
 #include <inference_engine.hpp>
 #include <opencv2/opencv.hpp>
 #include <iostream>
+#include <memory>
+
+class InferenceEngineWrapper;
 
 namespace calc
 {
@@ -58,7 +61,7 @@ private:
     float mapsteering(float input_value);
     float mapThrottle(float input_value);
 
-    std::vector<float> dataProcess(std::vector<uint8_t> input_vector);
+    std::vector<float> dataProcess(const std::vector<uint8_t> &input_vector);
 
 private:
     bool m_running;          // Flag to indicate if the component is running
@@ -68,6 +71,7 @@ private:
 
     std::shared_ptr<calc::aa::port::ControlData> m_ControlData; // ControlData port instance
     std::shared_ptr<calc::aa::port::RawData> m_RawData;         // RawData port instance
+    std::unique_ptr<InferenceEngineWrapper> m_inferenceEngine;
 
 
 };
